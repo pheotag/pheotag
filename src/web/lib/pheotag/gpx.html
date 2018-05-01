@@ -1,0 +1,198 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/elements/dom-repeat.html">
+
+<dom-module id="geotag-gpx">
+
+    <template>
+        <style>
+            :host {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                height: 100%;
+                font-size: 10pt;
+                font-family: Roboto;
+            }
+            button {
+                cursor: pointer;
+            }
+            #file {
+                flex: 0;
+                border: 1px solid lightgrey;
+                padding: 0.25em;
+                outline: none; /* disable chromium highlighting of input fields */
+                -webkit-appearance: none;
+                   -moz-appearance: none;
+                        appearance: none;
+            }
+            #container {
+                flex: 1;
+                overflow-y: scroll;
+            }
+            .photo {
+                margin: 10px;
+                border: 1px solid black;
+                box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+            }
+            .thumbnail {
+                display: block;
+                width: 100%;
+            }
+            .date {
+                color: whitesmoke;
+                background-color: black;
+                padding: 0.15em;
+                text-align: center;
+            }
+            .position {
+                display: flex;
+                align-items: baseline;
+                color: whitesmoke;
+                background-color: black;
+            }
+            .latlong {
+                flex: 1;
+                padding: 0.15em;
+                text-align: center;
+                font-family: monospace;
+            }
+            .control {
+                flex: 0;
+                white-space: nowrap;
+                padding: 0.15em;
+            }
+        </style>
+        <input id="file" type="file" on-change="_changedGeoFile" accept=".gpx" />
+        <div id="container">
+            <template is="dom-repeat" items="[[ locations ]]">
+                <!--
+                <div class="photo">
+                    <div class="date">
+                        [[ _date(item.dateOriginal, item.timeOriginal) ]]
+                    </div>
+                    <img class="thumbnail" src$="[[ item.uri ]]" />
+                    <div class="position">
+                        <div class="latlong">
+                            [[ _round(item.latitude) ]]&deg;, [[ _round(item.longitude) ]]&deg;
+                        </div>
+                        <div class="control">
+                            <button on-click="_clickShowGeoTag" title="Show the location of this photo in the map">&#128065;</button>
+                            <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this photo">&#10004;</button>
+                        </div>
+                    </div>
+                </div>
+                -->
+            </template>
+        </div>
+    </template>
+
+    <script>
+        /** @polymerElement */
+        class GeoTagGpx extends Polymer.Element {
+
+            /**
+             *
+             */
+            static get is() {
+                return 'geotag-gpx';
+            }
+
+            /**
+             *
+             */
+            static get properties() {
+                return {
+                    latitude: {
+                        type: Number,
+                        value: Number.NaN,
+                        notify: true, // enable upward data flow,
+                        //readOnly: true, // prevent downward data flow
+                    },
+                    longitude: {
+                        type: Number,
+                        value: Number.NaN,
+                        notify: true, // enable upward data flow,
+                        //readOnly: true, // prevent downward data flow
+                    }
+                };
+            }
+
+            /**
+             *
+             */
+            ready() {
+                super.ready();
+                this.locations = [];
+            }
+
+            /**
+             *
+             */
+            _round( value ) {
+                try {
+                    return value.toFixed( 5 );
+                } catch( e ) {
+                    console.warn( e );
+                    return Number.NaN;
+                }
+            }
+
+            /**
+             *
+             */
+            _date( date, time ) {
+                try {
+                    let dateTime = new Date( `${date} ${time}` );
+                    let options = {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        second: 'numeric'
+                    };
+                    return dateTime.toLocaleDateString( undefined, options );
+                } catch( e ) {
+                    console.warn( e );
+                    return 'UNKNOWN DATE';
+                }
+            }
+
+            /**
+             *
+             */
+            _changedGeoFile( event ) {
+                /*
+                this.locations = [... this.$.file.files].map( ( file ) => {
+                    return ( new GeoReference( file.path ) );
+                } );
+                */
+            }
+
+            /**
+             *
+             */
+            _clickShowGeoTag( event ) {
+                /*
+                let photo = event.model.item;
+                this.latitude = photo.latitude;
+                this.longitude = photo.longitude;
+                */
+            }
+
+            /**
+             *
+             */
+            _clickApplyGeoTag( event ) {
+                /*
+                let index = this.photos.indexOf( event.model.item );
+                this.set( `photos.${index}.latitude`, this.latitude );
+                this.set( `photos.${index}.longitude`, this.longitude );
+                */
+            }
+        }
+        window.customElements.define(GeoTagGpx.is, GeoTagGpx);
+    </script>
+
+</dom-module>

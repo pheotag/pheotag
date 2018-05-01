@@ -1,0 +1,142 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="geotag-map">
+
+    <template>
+        <style>
+            #map {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+        <div id="map"></div>
+    </template>
+
+    <script src="http://maps.googleapis.com/maps/api/js"></script>
+    <script>
+        /** @polymerElement */
+        class GeoTagMap extends Polymer.Element {
+            /**
+             *
+             */
+            static get is() {
+                return 'geotag-map';
+            }
+
+            /**
+             *
+             */
+            static get properties() {
+                return {
+                    latitude: {
+                        type: Number,
+                        value: Number.NaN,
+                        notify: true, // enable upward data flow,
+                        //readOnly: true, // prevent downward data flow
+                        observer: '_onTagChanged'
+                    },
+                    longitude: {
+                        type: Number,
+                        value: Number.NaN,
+                        notify: true, // enable upward data flow,
+                        //readOnly: true, // prevent downward data flow
+                        observer: '_onTagChanged'
+                    }
+                };
+            }
+
+            /**
+             *
+             */
+            ready() {
+                super.ready();
+                this._initializeMap();
+            }
+
+            /**
+             * 
+             */
+            _initializeMap() {
+                let options = {
+                    //backgroundColor : '#e5e3df',
+                    center: {
+                        lat: 0.0,
+                        lng: 0.0
+                    },
+                    zoom: 3,
+                    draggableCursor: 'pointer', //'crosshair',
+                    styles: [{}], // adding dummy styles to enable white google logo
+                    streetViewControl: false,
+                    mapTypeControl: true,
+                    mapTypeControlOptions: {
+						position: google.maps.ControlPosition.TOP_RIGHT,
+                        style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR
+                    },
+                    zoomControl: true,
+					zoomControlOptions: {
+						position: google.maps.ControlPosition.RIGHT_TOP
+					}
+                };
+                this._gmap = new google.maps.Map( this.$.map, options );
+                this._tag = new google.maps.Marker( {
+                    //optimized: false, // disable multiple marker in map repeat
+                    position : new google.maps.LatLng( this.latitude, this.longitude ),
+                    map : this._gmap,
+                    title : 'Currently selected location',
+                    //label : 'GeoTag',
+                    icon : new google.maps.MarkerImage( 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' )
+                } );
+                this._path = new google.maps.Polyline( {
+                    path : [
+                        new google.maps.LatLng( 0.0, 0.0 ),
+                        new google.maps.LatLng( 1.71, 0.0 ),
+                        new google.maps.LatLng( 1.4, 0.83 ),
+                        new google.maps.LatLng( 0.0, 1.39 )
+                    ],
+                    map : this._gmap,
+                    geodesic : true,
+                    strokeColor : '#ff0000',
+                    strokeOpacity : 0.75,
+                    strokeWeight : 1.5
+                } );
+                google.maps.event.addListener( this._gmap, 'click', this._onClickSetTag.bind( this ) );
+            }
+
+            /**
+             * 
+             */
+            _onClickSetTag( event ) {
+                try {
+                    this.latitude = event.latLng.lat();
+                    this.longitude = event.latLng.lng();
+                } catch( e ) {
+                    console.warn( e );
+                }
+            }
+
+            /**
+             * 
+             */
+            _onTagChanged( value ) {
+                try {
+                    if( !this._gmap ) {
+                        return;
+                    }
+                    if( !this._tag ) {
+                        return;
+                    }
+                    let location = new google.maps.LatLng( this.latitude, this.longitude );
+                    this._tag.setPosition( location );
+                    if( !this._gmap.getBounds().contains( location ) ) {
+                        this._gmap.setCenter( location );
+                        //this._gmap.setZoom(10);
+                    }
+                } catch( e ) {
+                    console.warn( e );
+                }
+            }
+        }
+        window.customElements.define(GeoTagMap.is, GeoTagMap);
+    </script>
+
+</dom-module>

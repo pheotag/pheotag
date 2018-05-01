@@ -1,2 +1,2 @@
-# pheotag
-Simple application for graphical geo tagging of multiple photos
+# Photo GeoTag
+![Screenshot Linux](./res/screenshot-linux.png)

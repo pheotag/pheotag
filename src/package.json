@@ -1,0 +1,10 @@
+{
+    "name": "photo-geo-tagger",
+    "version": "0.1.0",
+    "description": "Edit GPS coordinates in Exif of multiple images",
+    "author": "Ronny Wegener <wegener.ronny@gmail.com>",
+    "main": "main.js",
+    "dependencies": {
+        "piexifjs": "^1.0.4"
+    }
+}
