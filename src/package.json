@@ -1,10 +1,10 @@
 {
-    "name": "photo-geo-tagger",
+    "name": "pheotag",
     "version": "0.1.0",
-    "description": "Edit GPS coordinates in Exif of multiple images",
+    "description": "Simple application for graphical geo tagging of multiple photos.",
     "author": "Ronny Wegener <wegener.ronny@gmail.com>",
     "main": "main.js",
     "dependencies": {
-        "piexifjs": "^1.0.4"
+        "piexifjs": ""
     }
 }
