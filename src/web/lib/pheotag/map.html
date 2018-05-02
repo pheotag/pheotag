@@ -11,8 +11,7 @@
         </style>
         <div id="map"></div>
     </template>
-
-    <script src="http://maps.googleapis.com/maps/api/js"></script>
+    <script src="http://maps.googleapis.com/maps/api/js?key=">/* AIzaSyCnJTuWZwAbsVJmyFlSE7S-pXV8YNCLn2o */</script>
     <script>
         /** @polymerElement */
         class GeoTagMap extends Polymer.Element {
@@ -51,6 +50,7 @@
             ready() {
                 super.ready();
                 this._initializeMap();
+                this._panTimeOut = undefined;
             }
 
             /**
@@ -125,12 +125,20 @@
                     if( !this._tag ) {
                         return;
                     }
-                    let location = new google.maps.LatLng( this.latitude, this.longitude );
-                    this._tag.setPosition( location );
-                    if( !this._gmap.getBounds().contains( location ) ) {
-                        this._gmap.setCenter( location );
-                        //this._gmap.setZoom(10);
+                    if( this._panTimeOut ) {
+                        clearTimeout( this._panTimeOut );
                     }
+                    this._panTimeOut = setTimeout( () => {
+                        let location = new google.maps.LatLng( this.latitude, this.longitude );
+                        this._tag.setPosition( location );
+                        console.log( location );
+                        if( !this._gmap.getBounds().contains( location ) ) {
+                            //this._gmap.setCenter( location );
+                            this._gmap.panTo( location );
+                            //this._gmap.setZoom(10);
+                        }
+                        this._panTimeOut = undefined;
+                    }, 50 );
                 } catch( e ) {
                     console.warn( e );
                 }
