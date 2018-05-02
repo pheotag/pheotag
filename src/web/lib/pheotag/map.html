@@ -8,10 +8,22 @@
                 width: 100%;
                 height: 100%;
             }
+            #places {
+                position: absolute;
+                margin: 8px;
+                border: 1px solid lightgrey;
+                padding: 0.25em;
+                outline: none; /* disable chromium highlighting of input fields */
+                -webkit-appearance: none;
+                   -moz-appearance: none;
+                        appearance: none;
+                border-radius: 2px;
+                box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.25);
+            }
         </style>
         <div id="map"></div>
     </template>
-    <script src="http://maps.googleapis.com/maps/api/js?key=">/* AIzaSyCnJTuWZwAbsVJmyFlSE7S-pXV8YNCLn2o */</script>
+    <script src="http://maps.googleapis.com/maps/api/js?libraries=places&key=">/* AIzaSyCnJTuWZwAbsVJmyFlSE7S-pXV8YNCLn2o */</script>
     <script>
         /** @polymerElement */
         class GeoTagMap extends Polymer.Element {
@@ -50,6 +62,7 @@
             ready() {
                 super.ready();
                 this._initializeMap();
+                this._initializePlacesSearch();
                 this._panTimeOut = undefined;
             }
 
@@ -75,7 +88,9 @@
                     zoomControl: true,
 					zoomControlOptions: {
 						position: google.maps.ControlPosition.RIGHT_TOP
-					}
+                    },
+                    // disable keyboard shortcuts or 'K' and 'M' keys will no longer be available in search box
+                    keyboardShortcuts: false
                 };
                 this._gmap = new google.maps.Map( this.$.map, options );
                 this._tag = new google.maps.Marker( {
@@ -99,16 +114,47 @@
                     strokeOpacity : 0.75,
                     strokeWeight : 1.5
                 } );
-                google.maps.event.addListener( this._gmap, 'click', this._onClickSetTag.bind( this ) );
+                google.maps.event.addListener( this._gmap, 'click', this._onMapClicked.bind( this ) );
             }
 
             /**
              * 
              */
-            _onClickSetTag( event ) {
+            _initializePlacesSearch() {
+                let search = document.createElement( 'input' );
+                search.id = 'places';
+                search.type = 'text';
+                //search.classList.add( 'meow' );
+                search.placeholder = 'Search Places';
+                this._gsearch = new google.maps.places.SearchBox( search );
+                this._gmap.controls[google.maps.ControlPosition.TOP_LEFT].push( search );
+                google.maps.event.addListener( this._gsearch, 'places_changed', this._onPlacesChanged.bind( this ) );
+            }
+
+            /**
+             * 
+             */
+            _onMapClicked( event ) {
                 try {
                     this.latitude = event.latLng.lat();
                     this.longitude = event.latLng.lng();
+                } catch( e ) {
+                    console.warn( e );
+                }
+            }
+
+            /**
+             * 
+             */
+            _onPlacesChanged() {
+                try {
+                    let geometry = this._gsearch.getPlaces()[0].geometry;
+                    if ( geometry.viewport ) {
+                        this._gmap.fitBounds( geometry.viewport );
+                    } else {
+                        this._gmap.setCenter( geometry.location );
+                        this._gmap.setZoom( 12 );
+                    }
                 } catch( e ) {
                     console.warn( e );
                 }
@@ -131,7 +177,6 @@
                     this._panTimeOut = setTimeout( () => {
                         let location = new google.maps.LatLng( this.latitude, this.longitude );
                         this._tag.setPosition( location );
-                        console.log( location );
                         if( !this._gmap.getBounds().contains( location ) ) {
                             //this._gmap.setCenter( location );
                             this._gmap.panTo( location );
