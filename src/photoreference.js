@@ -115,7 +115,7 @@ class PhotoReference {
             let dateTime = this._imageEXIF[ifd][index].split( ' ' );
             return ( dateTime ? dateTime[0].split( ':' ).join( '-' ) : undefined );
         } catch( e ) {
-            console.error( e );
+            //console.warn( e );
             return undefined;
         }
     }
