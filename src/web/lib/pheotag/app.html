@@ -25,7 +25,7 @@
                 width: 280px;
             }
         </style>
-        <geotag-pics id="pics" latitude="{{ latitude }}" longitude="{{ longitude }}"></geotag-pics>
+        <geotag-pics id="pics" latitude="{{ latitude }}" longitude="{{ longitude }}" on-photo="photoEventHandler"></geotag-pics>
         <geotag-map id="map" latitude="{{ latitude }}" longitude="{{ longitude }}"></geotag-map>
         <geotag-gpx id="gpx" latitude="{{ latitude }}" longitude="{{ longitude }}"></geotag-gpx>
     </template>
@@ -45,7 +45,7 @@
              */
             ready() {
                 super.ready();
-                //
+                this.photoEventHandler = this.$.gpx.photoEventHandler.bind( this.$.gpx );
             }
         }
         window.customElements.define(GeoTagApp.is, GeoTagApp);

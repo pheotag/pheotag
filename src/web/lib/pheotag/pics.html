@@ -186,10 +186,14 @@
              *
              */
             _clickAddToGPX( event ) {
-                let photo = event.model.item;
-                this.dispatchEvent( new CustomEvent( 'gpx', { 
-                    detail: photo
-                } ) );
+                try {
+                    event = new CustomEvent( 'photo', {
+                        detail: event.model.item
+                    } );
+                    this.dispatchEvent( event );
+                } catch( e ) {
+                    console.error( e );
+                }
             }
 
             /**
