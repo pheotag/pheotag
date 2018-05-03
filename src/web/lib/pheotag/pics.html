@@ -44,22 +44,17 @@
                 padding: 0.15em;
                 text-align: center;
             }
-            .position {
-                display: flex;
-                align-items: baseline;
+            .latlong {
                 color: whitesmoke;
                 background-color: black;
-            }
-            .latlong {
-                flex: 1;
                 padding: 0.15em;
-                text-align: center;
+                text-align: left;
                 font-family: monospace;
             }
             .control {
-                flex: 0;
-                white-space: nowrap;
+                background-color: black;
                 padding: 0.15em;
+                text-align: right;
             }
         </style>
         <input id="file" type="file" on-change="_changedImageFiles" accept=".jpg" multiple />
@@ -70,14 +65,14 @@
                         [[ _date(item.dateOriginal, item.timeOriginal) ]]
                     </div>
                     <img class="thumbnail" src$="[[ item.uri ]]" />
-                    <div class="position">
-                        <div class="latlong">
-                            [[ _round(item.latitude) ]]&deg;, [[ _round(item.longitude) ]]&deg;
-                        </div>
-                        <div class="control">
-                            <button on-click="_clickShowGeoTag" title="Show the location of this photo in the map">&#128065;</button>
-                            <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this photo">&#10004;</button>
-                        </div>
+                    <div class="latlong">
+                        [[ _round(item.latitude) ]]&deg;, [[ _round(item.longitude) ]]&deg;
+                    </div>
+                    <div class="control">
+                        <button on-click="_clickShowGeoTag" title="Show the location of this photo in the map">&#128065;</button>
+                        <button on-click="_clickAddToGPX" title="Add this photo to the GPX file">&#10133;</button>
+                        <button on-click="_clickReloadEXIF" title="Reload the EXIF of this photo from the file">&#128259;</button>
+                        <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this photo">&#10004;</button>
                     </div>
                 </div>
             </template>
@@ -164,9 +159,17 @@
              *
              */
             _changedImageFiles( event ) {
-                this.photos = [... this.$.file.files]
-                .filter( file => file.path.toLowerCase().endsWith( '.jpg' ) )
-                .map( ( file ) => ( new PhotoReference( file.path ) ) );
+                try {
+                    let jpegs = [... this.$.file.files]
+                    .filter( file => file.path.toLowerCase().endsWith( '.jpg' ) )
+                    .map( ( file ) => ( new PhotoReference( file.path ) ) );
+                    if( !jpegs || !Array.isArray( jpegs ) || jpegs.length === 0 ) {
+                        throw new Error( 'No valid JPEG photos!' );
+                    }
+                    this.photos = jpegs;
+                } catch( ex ) {
+                    //console.warn( ex );
+                }
             }
 
             /**
@@ -181,18 +184,35 @@
             /**
              *
              */
+            _clickAddToGPX( event ) {
+                let photo = event.model.item;
+                this.dispatchEvent( new CustomEvent( 'gpx', { 
+                    detail: photo
+                } ) );
+            }
+
+            /**
+             *
+             */
             _clickApplyGeoTag( event ) {
-                /*
-                let exif = event.model.item.exif;
-                exif.latitude = this.latitude;
-                exif.longitude = this.longitude;
-                // force update in view
-                let index = this.pictures.indexOf( event.model.item );
-                this.notifyPath( `pictures.${index}.exif`, event.model.item.exif );
-                */
-                let index = this.photos.indexOf( event.model.item );
+                // TODO: find a better way for notification without relying on index
+                let index = event.model.index;
                 this.set( `photos.${index}.latitude`, this.latitude );
                 this.set( `photos.${index}.longitude`, this.longitude );
+            }
+
+            /**
+             *
+             */
+            _clickReloadEXIF( event ) {
+                let photo = event.model.item;
+                photo.loadEXIF();
+                // TODO: find a better way for notification without relying on index
+                let index = event.model.index;
+                this.notifyPath( `photos.${index}.date` );
+                this.notifyPath( `photos.${index}.time` );
+                this.notifyPath( `photos.${index}.latitude` );
+                this.notifyPath( `photos.${index}.longitude` );
             }
         }
         window.customElements.define(GeoTagPics.is, GeoTagPics);

@@ -15,7 +15,7 @@ class PhotoReference {
     constructor( file ) {
         this._imageFile = file;
         this._imageEXIF = undefined;
-        this._loadEXIF();
+        this.loadEXIF();
     }
 
     /**
@@ -76,7 +76,7 @@ class PhotoReference {
     /**
      * 
      */
-    _loadEXIF() {
+    loadEXIF() {
         try {
             let jpeg = fs.readFileSync( this._imageFile );
             let data = jpeg.toString( 'binary' );
