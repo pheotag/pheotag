@@ -78,9 +78,8 @@ class PhotoReference {
      */
     loadEXIF() {
         try {
-            let jpeg = fs.readFileSync( this._imageFile );
-            let data = jpeg.toString( 'binary' );
-            this._imageEXIF = piexif.load( data );
+            let bytes = fs.readFileSync( this._imageFile, 'binary' );
+            this._imageEXIF = piexif.load( bytes );
         } catch( e ) {
             console.error( e );
         }
@@ -91,12 +90,10 @@ class PhotoReference {
      */
     saveEXIF() {
         try {
-            let jpeg = fs.readFileSync( this._imageFile );
-            let data = jpeg.toString( 'binary' );
-            var exifbytes = piexif.dump( this._imageEXIF );
-            var newData = piexif.insert( exifbytes, data );
-            var newJpeg = new Buffer( newData, 'binary' );
-            fs.writeFileSync( this._imageFile, newJpeg );
+            let bytes = fs.readFileSync( this._imageFile, 'binary' );
+            let exif = piexif.dump( this._imageEXIF );
+            bytes = piexif.insert( exif, bytes );
+            fs.writeFileSync( this._imageFile, bytes, 'binary' );
         } catch( e ) {
             console.error( e );
         }

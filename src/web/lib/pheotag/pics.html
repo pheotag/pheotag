@@ -71,8 +71,9 @@
                     <div class="control">
                         <button on-click="_clickShowGeoTag" title="Show the location of this photo in the map">&#128065;</button>
                         <button on-click="_clickAddToGPX" title="Add this photo to the GPX file">&#10133;</button>
-                        <button on-click="_clickReloadEXIF" title="Reload the EXIF of this photo from the file">&#128259;</button>
+                        <button on-click="_clickReloadEXIF" title="Reload the EXIF data of this photo from the file">&#128259;</button>
                         <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this photo">&#10004;</button>
+                        <button on-click="_clickSaveEXIF" title="Save the modified EXIF data of this photo to the file">&#128190;</button>
                     </div>
                 </div>
             </template>
@@ -205,14 +206,28 @@
              *
              */
             _clickReloadEXIF( event ) {
-                let photo = event.model.item;
-                photo.loadEXIF();
-                // TODO: find a better way for notification without relying on index
-                let index = event.model.index;
-                this.notifyPath( `photos.${index}.date` );
-                this.notifyPath( `photos.${index}.time` );
-                this.notifyPath( `photos.${index}.latitude` );
-                this.notifyPath( `photos.${index}.longitude` );
+                try {
+                    let photo = event.model.item;
+                    photo.loadEXIF();
+                    // TODO: find a better way for notification without relying on index
+                    let index = event.model.index;
+                    this.notifyPath( `photos.${index}.date` );
+                    this.notifyPath( `photos.${index}.time` );
+                    this.notifyPath( `photos.${index}.latitude` );
+                    this.notifyPath( `photos.${index}.longitude` );
+                } catch( e ) {
+                    console.error( e );
+                }
+            }
+
+            _clickSaveEXIF( event ) {
+                try {
+                    let photo = event.model.item;
+                    photo.saveEXIF();
+                } catch( e ) {
+                    console.error( e );
+                    alert( e.message );
+                }
             }
         }
         window.customElements.define(GeoTagPics.is, GeoTagPics);
