@@ -63,6 +63,8 @@
                 super.ready();
                 this._initializeMap();
                 this._initializePlacesSearch();
+                this._initializeTag();
+                this._initializePath();
                 this._panTimeOut = undefined;
             }
 
@@ -70,65 +72,95 @@
              * 
              */
             _initializeMap() {
-                let options = {
-                    //backgroundColor : '#e5e3df',
-                    center: {
-                        lat: 0.0,
-                        lng: 0.0
-                    },
-                    zoom: 3,
-                    draggableCursor: 'pointer', //'crosshair',
-                    styles: [{}], // adding dummy styles to enable white google logo
-                    streetViewControl: false,
-                    mapTypeControl: true,
-                    mapTypeControlOptions: {
-						position: google.maps.ControlPosition.TOP_RIGHT,
-                        style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR
-                    },
-                    zoomControl: true,
-					zoomControlOptions: {
-						position: google.maps.ControlPosition.RIGHT_TOP
-                    },
-                    // disable keyboard shortcuts or 'K' and 'M' keys will no longer be available in search box
-                    keyboardShortcuts: false
-                };
-                this._gmap = new google.maps.Map( this.$.map, options );
-                this._tag = new google.maps.Marker( {
-                    //optimized: false, // disable multiple marker in map repeat
-                    position : new google.maps.LatLng( this.latitude, this.longitude ),
-                    map : this._gmap,
-                    title : 'Currently selected location',
-                    //label : 'GeoTag',
-                    icon : new google.maps.MarkerImage( 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' )
-                } );
-                this._path = new google.maps.Polyline( {
-                    path : [
-                        new google.maps.LatLng( 0.0, 0.0 ),
-                        new google.maps.LatLng( 1.71, 0.0 ),
-                        new google.maps.LatLng( 1.4, 0.83 ),
-                        new google.maps.LatLng( 0.0, 1.39 )
-                    ],
-                    map : this._gmap,
-                    geodesic : true,
-                    strokeColor : '#ff0000',
-                    strokeOpacity : 0.75,
-                    strokeWeight : 1.5
-                } );
-                google.maps.event.addListener( this._gmap, 'click', this._onMapClicked.bind( this ) );
+                try {
+                    let options = {
+                        //backgroundColor : '#e5e3df',
+                        center: {
+                            lat: 0.0,
+                            lng: 0.0
+                        },
+                        zoom: 3,
+                        draggableCursor: 'pointer', //'crosshair',
+                        styles: [{}], // adding dummy styles to enable white google logo
+                        streetViewControl: false,
+                        mapTypeControl: true,
+                        mapTypeControlOptions: {
+                            position: google.maps.ControlPosition.TOP_RIGHT,
+                            style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR
+                        },
+                        zoomControl: true,
+                        zoomControlOptions: {
+                            position: google.maps.ControlPosition.RIGHT_TOP
+                        },
+                        // disable keyboard shortcuts or 'K' and 'M' keys will no longer be available in search box
+                        keyboardShortcuts: false
+                    };
+                    this._gmap = new google.maps.Map( this.$.map, options );
+                    google.maps.event.addListener( this._gmap, 'click', this._onMapClicked.bind( this ) );
+                } catch( e ) {
+                    console.error( e );
+                }
             }
 
             /**
              * 
              */
             _initializePlacesSearch() {
-                let search = document.createElement( 'input' );
-                search.id = 'places';
-                search.type = 'text';
-                //search.classList.add( 'meow' );
-                search.placeholder = 'Search Places';
-                this._gsearch = new google.maps.places.SearchBox( search );
-                this._gmap.controls[google.maps.ControlPosition.TOP_LEFT].push( search );
-                google.maps.event.addListener( this._gsearch, 'places_changed', this._onPlacesChanged.bind( this ) );
+                try {
+                    let search = document.createElement( 'input' );
+                    search.id = 'places';
+                    search.type = 'text';
+                    search.placeholder = 'Search Places';
+                    this._gsearch = new google.maps.places.SearchBox( search );
+                    this._gmap.controls[google.maps.ControlPosition.TOP_LEFT].push( search );
+                    google.maps.event.addListener( this._gsearch, 'places_changed', this._onPlacesChanged.bind( this ) );
+                } catch( e ) {
+                    console.error( e );
+                }
+            }
+
+            /**
+             *
+             */
+            _initializeTag() {
+                try {
+                    let options = {
+                        //optimized: false, // disable multiple marker in map repeat
+                        position : new google.maps.LatLng( this.latitude, this.longitude ),
+                        map : this._gmap,
+                        title : 'Currently selected location',
+                        //label : 'GeoTag',
+                        icon : new google.maps.MarkerImage( 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' )
+                    };
+                    this._tag = new google.maps.Marker( options );
+                } catch( e ) {
+                    console.error( e );
+                }
+            }
+
+            /**
+             *
+             */
+            _initializePath() {
+                try {
+                    let path = [
+                        new google.maps.LatLng( 0.0, 0.0 ),
+                        new google.maps.LatLng( 1.71, 0.0 ),
+                        new google.maps.LatLng( 1.4, 0.83 ),
+                        new google.maps.LatLng( 0.0, 1.39 )
+                    ];
+                    let options = {
+                        path : path,
+                        map : this._gmap,
+                        geodesic : true,
+                        strokeColor : '#ff0000',
+                        strokeOpacity : 0.75,
+                        strokeWeight : 1.5
+                    }
+                    this._path = new google.maps.Polyline( options );
+                } catch( e ) {
+                    console.error( e );
+                }
             }
 
             /**
