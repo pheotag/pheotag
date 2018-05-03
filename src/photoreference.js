@@ -101,6 +101,24 @@ class PhotoReference {
 
     /**
      * 
+     */
+    get orientation() {
+        try {
+            if( !this._imageEXIF ) {
+                throw new Error( 'EXIF data missing!' );
+            }
+            if( !this._imageEXIF['0th'] ) {
+                throw new Error( '0th data missing!' );
+            }
+            return this._imageEXIF['0th'][piexif.ImageIFD.Orientation];
+        } catch( e ) {
+            //console.warn( e );
+            return undefined;
+        }
+    }
+
+    /**
+     * 
      * @param {*} ifd 
      * @param {*} index 
      */
