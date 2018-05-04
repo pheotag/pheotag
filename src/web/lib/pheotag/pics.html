@@ -32,27 +32,53 @@
             .photo {
                 margin: 10px;
                 border: 1px solid black;
+                background-color: black;
                 box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
             }
             .thumbnail {
+                overflow: hidden;
+            }
+            .thumbnail > img {
                 display: block;
                 width: 100%;
             }
+            /* https://www.daveperrett.com/images/articles/2012-07-28-exif-orientation-handling-is-a-ghetto/EXIF_Orientations.jpg */
+            .orientation1 {
+                /* OK */
+            }
+            .orientation2 {
+                transform: scaleX(-1);
+            }
+            .orientation3 {
+                transform: scale(-1);
+            }
+            .orientation4 {
+                transform: scaleY(-1);
+            }
+            .orientation5 {
+                transform: scaleX(-1) rotate(90deg);
+            }
+            .orientation6 {
+                transform: rotate(90deg);
+            }
+            .orientation7 {
+                transform: scaleX(-1) rotate(-90deg);
+            }
+            .orientation8 {
+                transform: rotate(-90deg);
+            }
             .date {
                 color: whitesmoke;
-                background-color: black;
                 padding: 0.15em;
                 text-align: center;
             }
             .latlong {
                 color: whitesmoke;
-                background-color: black;
                 padding: 0.15em;
                 text-align: left;
                 font-family: monospace;
             }
             .control {
-                background-color: black;
                 padding: 0.15em;
                 text-align: right;
             }
@@ -64,7 +90,9 @@
                     <div class="date">
                         [[ _date(item.dateOriginal, item.timeOriginal) ]]
                     </div>
-                    <img class="thumbnail" src$="[[ item.uri ]]" />
+                    <div class="thumbnail">
+                        <img class$="orientation[[ item.orientation ]]" src$="[[ item.uri ]]" />
+                    </div>
                     <div class="latlong">
                         [[ _round(item.latitude) ]]&deg;, [[ _round(item.longitude) ]]&deg;
                     </div>
