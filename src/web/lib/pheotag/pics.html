@@ -37,6 +37,7 @@
             }
             .thumbnail {
                 overflow: hidden;
+                background-color: rgb(96, 96, 96);
             }
             .thumbnail > img {
                 display: block;
@@ -75,11 +76,21 @@
             .latlong {
                 color: whitesmoke;
                 padding: 0.15em;
-                text-align: left;
+                text-align: center;
                 font-family: monospace;
             }
             .control {
+                flex: 0;
+                display: table;
+                width: calc(100% - 2*0.15em);
                 padding: 0.15em;
+            }
+            .control > .left {
+                display: table-cell;
+                text-align: left;
+            }
+            .control > .right {
+                display: table-cell;
                 text-align: right;
             }
         </style>
@@ -97,11 +108,15 @@
                         [[ _round(item.latitude) ]]&deg;, [[ _round(item.longitude) ]]&deg;
                     </div>
                     <div class="control">
-                        <button on-click="_clickShowGeoTag" title="Show the location of this photo in the map">&#128065;</button>
-                        <button on-click="_clickAddToGPX" title="Add this photo to the GPX file">&#10133;</button>
-                        <button on-click="_clickReloadEXIF" title="Reload the EXIF data of this photo from the file">&#128259;</button>
-                        <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this photo">&#10004;</button>
-                        <button on-click="_clickSaveEXIF" title="Save the modified EXIF data of this photo to the file">&#128190;</button>
+                        <div class="left">
+                            <button on-click="_clickShowGeoTag" title="Show the location of this photo in the map">&#128065;</button>
+                            <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this photo">&#10004;</button>
+                            <button on-click="_clickAddToGPX" title="Add this photo to the GPX file">&#10133;</button>
+                        </div>
+                        <div class="right">
+                            <button on-click="_clickReloadEXIF" title="Reload the EXIF data of this photo from the file">&#128259;</button>
+                            <button on-click="_clickSaveEXIF" title="Save the modified EXIF data of this photo to the file">&#128190;</button>
+                        </div>
                     </div>
                 </div>
             </template>
@@ -252,6 +267,9 @@
                 }
             }
 
+            /**
+             *
+             */
             _clickSaveEXIF( event ) {
                 try {
                     let photo = event.model.item;
