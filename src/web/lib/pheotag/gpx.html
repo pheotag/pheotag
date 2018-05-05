@@ -282,13 +282,17 @@
                 try {
                     let photo = event.detail;
                     console.log( 'addPhotoEventListener', photo.uri );
-                    this._timezoneOffset( photo.latitude, photo.longitude, photo.dateOriginal, photo.timeOriginal );
-                    setTimeout(() => {
+                    this._timezoneOffset( photo.latitude, photo.longitude, photo.dateOriginal, photo.timeOriginal )
+                    .then( ( offset ) => {
                         let link = photo.uri.split( '/' );
                         link = link[link.length - 1];
-                        let dateTime = new Date( `${photo.dateOriginal} ${photo.timeOriginal}` );
+                        let dateTime = new Date( `${photo.dateOriginal} ${photo.timeOriginal} ${offset}` );
+                        console.log( dateTime.toISOString() );
                         this._addWaypoint( '', '', dateTime, photo.latitude, photo.longitude, 0.0, link );
-                    }, 500 );
+                    } )
+                    .catch( ( e ) => {
+                        console.error( e );
+                    } );
                 } catch( e ) {
                     console.error( e );
                 }
@@ -323,39 +327,76 @@
             }
 
             /**
+             *
+             */
+            _clickRemoveWaypoint( event ) {
+                try {
+                    let waypoint = event.model.item;
+                    let waypoints = this.geo.waypoints;
+                    let index = waypoints.findIndex( w => w === waypoint );
+                    if( index > -1 ) {
+                        waypoints.splice( index, 1 );
+                        this.set( 'geo.waypoints', waypoints );
+                    }
+                } catch( e ) {
+                    throw e;
+                }
+            }
+
+            /**
              * Determine the timezone offset for the given local date and time
              * regarding the given coordinates.
              */
             _timezoneOffset( lat, long, date, time ) {
-
                 let key = 'AIzaSyAI65pf3plY-90Ja59xMLFyPrIewKJ93eM';
                 let ts = Math.floor( ( new Date( date + ' ' + time ) ).getTime() / 1000 );
                 let uri = `https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${long}&timestamp=${ts}&key=${key}`;
-
-                fetch( uri )
-                .then( ( response ) => {
-                    try {
-                        if( !response.headers.get( 'Content-Type' ).startsWith( 'application/json' ) ) {
-                            throw new Error( 'Response is not in JSON format!' );
-                        }
-                        if( response.status !== 200 ) {
-                            throw new Error( 'Status code: ' + response.status );
-                        }
-                        response.json()
-                        .then( ( content ) => {
-                            try {
-                                if( content.status !== 'OK' ) {
-                                    throw new Error( content.status );
-                                }
-                                console.log( content.rawOffset, content.dstOffset );
-                            } catch( e ) {
-                                console.warn( e );
+                return new Promise( ( resolve, reject ) => {
+                    fetch( uri )
+                    .then( ( response ) => {
+                        try {
+                            if( !response.headers.get( 'Content-Type' ).startsWith( 'application/json' ) ) {
+                                throw new Error( 'Response is not in JSON format!' );
                             }
-                        } );
-                    } catch( e ) {
-                        console.warn( e );
-                    }
+                            if( response.status !== 200 ) {
+                                throw new Error( 'Status code: ' + response.status );
+                            }
+                            response.json()
+                            .then( ( content ) => {
+                                try {
+                                    if( content.status !== 'OK' ) {
+                                        throw new Error( content.status );
+                                    }
+                                    resolve( this._timezoneOffsetString( content.rawOffset, content.dstOffset ) );
+                                } catch( e ) {
+                                    reject( e );
+                                }
+                            } )
+                            .catch( ( e ) => {
+                                reject( e );
+                            } );
+                        } catch( e ) {
+                            reject( e );
+                        }
+                    } )
+                    .catch( ( e ) => {
+                        reject( e );
+                    } );
                 } );
+            }
+
+            /**
+             * 
+             */
+            _timezoneOffsetString( offsetRAW, offsetDST ) {
+                try {
+                    let offset = offsetRAW + offsetDST;
+                    let hours = Math.floor( offset / 3600 );
+                    let minutes = Math.floor( ( offset - ( 3600 * hours ) / 60 ) );
+                    return '+0900';
+                } catch ( e ) {
+                    throw e;
+                }
             }
         }
         window.customElements.define(GeoTagGpx.is, GeoTagGpx);
