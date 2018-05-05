@@ -59,7 +59,7 @@ class GeoFile {
                     latitude: 1.234567,
                     longitude: 7.654321,
                     altitude: 0.0,
-                    link: 'DSC0002.jpg'
+                    link: ''
                 }
             ];
         } catch( e ) {

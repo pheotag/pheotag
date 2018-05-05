@@ -48,30 +48,18 @@
             }
             .waypoint {
                 margin: 10px;
+                box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+            }
+            .photo {
+                color: whitesmoke;
                 border: 1px solid black;
                 background-color: black;
-                box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
             }
             .time {
-                color: whitesmoke;
                 padding: 0.15em;
                 text-align: center;
             }
-            .title {
-                color: whitesmoke;
-                padding: 0.15em;
-            }
-            .description {
-                color: whitesmoke;
-                padding: 0.15em;
-            }
-            .media {
-                color: whitesmoke;
-                padding: 0.15em;
-                text-align: left;
-            }
             .latlong {
-                color: whitesmoke;
                 padding: 0.15em;
                 text-align: center;
                 font-family: monospace;
@@ -99,7 +87,7 @@
         <input id="filter" type="text" value="{{ filter::input }}"/>
         <div id="container">
             <template is="dom-repeat" items="[[ geo.waypoints ]]">
-                <div class="waypoint" title$="[[ _tooltip(item) ]]">
+                <div class$="waypoint [[ _classForWaypoint(item) ]]" title$="[[ _tooltip(item) ]]">
                     <div class="time">[[ item.time ]]</div>
                     <div class="latlong">
                             [[ _round(item.latitude) ]]&deg;, [[ _round(item.longitude) ]]&deg;
@@ -116,23 +104,6 @@
                         </div>
                     </div>
                 </div>
-                <!--
-                <div class="photo">
-                    <div class="date">
-                        [[ _date(item.dateOriginal, item.timeOriginal) ]]
-                    </div>
-                    <img class="thumbnail" src$="[[ item.uri ]]" />
-                    <div class="position">
-                        <div class="latlong">
-                            [[ _round(item.latitude) ]]&deg;, [[ _round(item.longitude) ]]&deg;
-                        </div>
-                        <div class="control">
-                            <button on-click="_clickShowGeoTag" title="Show the location of this photo in the map">&#128065;</button>
-                            <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this photo">&#10004;</button>
-                        </div>
-                    </div>
-                </div>
-                -->
             </template>
         </div>
     </template>
@@ -226,6 +197,23 @@
                 tooltip.push( 'Altitude: ' + waypoint.altitude);
                 tooltip.push( 'Link: ' + waypoint.link );
                 return tooltip.join( '\n' );
+            }
+
+            /**
+             *
+             */
+            _classForWaypoint( waypoint ) {
+                try {
+                    if( !waypoint.link ) {
+                        throw new Error( 'No link!' );
+                    }
+                    if( waypoint.length < 1 ) {
+                        throw new Error( 'Invalid link!' );
+                    }
+                    return 'photo';
+                } catch( e ) {
+                    return '';
+                }
             }
 
             /**
