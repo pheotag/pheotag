@@ -15,14 +15,16 @@
             }
             #pics {
                 flex: 0;
-                box-shadow: 8px 0px 16px rgba(0, 0, 0, 0.25);
+                box-shadow: 8px 0px 16px rgba(0, 0, 0, 0.25) !important;
+                z-index: 1;
             }
             #map {
                 flex: 1;
             }
             #gpx {
                 flex: 0;
-                box-shadow: -8px 0px 16px rgba(0, 0, 0, 0.25);
+                box-shadow: -8px 0px 16px rgba(0, 0, 0, 0.25) !important;
+                z-index: 1;
             }
         </style>
         <geotag-pics id="pics" latitude="{{ latitude }}" longitude="{{ longitude }}" on-photo="photoEventHandler"></geotag-pics>
