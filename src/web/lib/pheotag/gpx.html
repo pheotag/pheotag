@@ -17,7 +17,7 @@
                 cursor: pointer;
             }
             .file {
-                flex: content;
+                flex: initial;
                 overflow-x: hidden;
                 word-wrap: none;
                 white-space: nowrap;
@@ -35,6 +35,12 @@
             }
             .export {
                 color: royalblue;
+            }
+            #filter {
+                flex: initial;
+                margin: 0.25em;
+                width: calc(100% - 0.75em);
+                outline: none; /* disable chromium highlighting of input fields */
             }
             #container {
                 flex: 1;
@@ -71,10 +77,18 @@
                 font-family: monospace;
             }
             .control {
-                flex: 0;
+                flex: initial;
                 display: table;
                 width: calc(100% - 2*0.15em);
                 padding: 0.15em;
+            }
+            .control > .left {
+                display: table-cell;
+                text-align: left;
+            }
+            .control > .right {
+                display: table-cell;
+                text-align: right;
             }
         </style>
         <div class="file">
@@ -82,17 +96,24 @@
             <button class="clear" on-click="_clickClear" title="Clear the list of waypoints">&#10008;</button>
             <button class="export" on-click="_clickExport" title="Export the list of waypoints">&#129095;</button>
         </div>
+        <input id="filter" type="text" value="{{ filter::input }}"/>
         <div id="container">
             <template is="dom-repeat" items="[[ geo.waypoints ]]">
-                <div class="waypoint">
+                <div class="waypoint" title$="[[ _tooltip(item) ]]">
                     <div class="time">[[ item.time ]]</div>
-                    <div style$="display: block;">
-                        <div class="media">[[ item.link ]]</div>
-                        <div class="title">[[ item.title ]]</div>
-                        <div class="description">[[ item.description ]]</div>
-                    </div>
                     <div class="latlong">
                             [[ _round(item.latitude) ]]&deg;, [[ _round(item.longitude) ]]&deg;
+                    </div>
+                    <div class="control">
+                        <div class="left">
+                            <button on-click="_clickShowGeoTag" title="Show the location of this waypoint in the map">&#128065;</button>
+                            <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this waypoint">&#128205;</button>
+                            <button on-click="_clickEditDateTime" title="Edit the date and time">&#128336;</button>
+                            <button on-click="_clickEditWaypoint" title="Edit the waypoint">&#128393;</button>
+                        </div>
+                        <div class="right">
+                            <button class="clear" on-click="_clickRemoveWaypoint" title="Remove this waypoint from the list">&#10134;</button>
+                        </div>
                     </div>
                 </div>
                 <!--
@@ -156,6 +177,7 @@
             ready() {
                 super.ready();
                 this.geo = new GeoFile();
+                this.notifyPath( 'geo.waypoints' );
             }
 
             /**
@@ -190,6 +212,18 @@
                     console.warn( e );
                     return 'UNKNOWN DATE';
                 }
+            }
+
+            _tooltip( waypoint ) {
+                let tooltip = [];
+                tooltip.push( 'Title: ' + waypoint.title );
+                tooltip.push( 'Description: ' + waypoint.description );
+                tooltip.push( 'Time: ' + waypoint.time );
+                tooltip.push( `Coordinates: ${ this._round(waypoint.latitude) }°, ${ this._round(waypoint.longitude) }°`);
+                tooltip.push( 'Altitude: ' + waypoint.altitude);
+                tooltip.push( 'Link: ' + waypoint.link );
+                console.log( tooltip );
+                return tooltip.join( '\n' );
             }
 
             /**
@@ -251,13 +285,50 @@
                 */
             }
 
+            /**
+             * 
+             */
             photoEventHandler( event ) {
                 try {
                     let photo = event.detail;
-                    console.log( 'addPhotoEventListener', photo.orientation, photo.uri, photo );
+                    console.log( 'addPhotoEventListener', photo.uri );
                     this._timezoneOffset( photo.latitude, photo.longitude, photo.dateOriginal, photo.timeOriginal );
+                    setTimeout(() => {
+                        let link = photo.uri.split( '/' );
+                        link = link[link.length - 1];
+                        let dateTime = new Date( `${photo.dateOriginal} ${photo.timeOriginal}` );
+                        this._addWaypoint( '', '', dateTime, photo.latitude, photo.longitude, 0.0, link );
+                    }, 500 );
                 } catch( e ) {
                     console.error( e );
+                }
+            }
+
+            /**
+             * 
+             */
+            _addWaypoint( title, description, time, latitude, longitude, altitude, link ) {
+                try {
+                    let waypoints = this.geo.waypoints;
+                    let index = waypoints.findIndex( w => w.link === link );
+                    if( index < 0 || confirm( `A waypoint for '${link}' already exist.\n\nReplace the existing waypoint?` ) ) {
+                        let waypoint = {
+                            title: title,
+                            description: description,
+                            time: time,
+                            latitude: latitude,
+                            longitude: longitude,
+                            altitude: altitude,
+                            link: link
+                        };
+                        waypoints.push( waypoint );
+                        if( index > -1 ) {
+                            waypoints.splice( index, 1 );
+                        }
+                        this.set( 'geo.waypoints', waypoints );
+                    }
+                } catch( e ) {
+                    console.warn( e );
                 }
             }
 
