@@ -257,22 +257,18 @@
              *
              */
             _clickShowGeoTag( event ) {
-                /*
-                let photo = event.model.item;
-                this.latitude = photo.latitude;
-                this.longitude = photo.longitude;
-                */
+                let waypoint = event.model.item;
+                this.latitude = waypoint.latitude;
+                this.longitude = waypoint.longitude;
             }
 
             /**
              *
              */
             _clickApplyGeoTag( event ) {
-                /*
-                let index = this.photos.indexOf( event.model.item );
-                this.set( `photos.${index}.latitude`, this.latitude );
-                this.set( `photos.${index}.longitude`, this.longitude );
-                */
+                let index = this.geo.waypoints.indexOf( event.model.item );
+                this.set( `geo.waypoints.${index}.latitude`, this.latitude );
+                this.set( `geo.waypoints.${index}.longitude`, this.longitude );
             }
 
             /**
@@ -281,7 +277,6 @@
             photoEventHandler( event ) {
                 try {
                     let photo = event.detail;
-                    console.log( 'addPhotoEventListener', photo.uri );
                     this._timezoneOffset( photo.latitude, photo.longitude, photo.dateOriginal, photo.timeOriginal )
                     .then( ( offset ) => {
                         let link = photo.uri.split( '/' );
