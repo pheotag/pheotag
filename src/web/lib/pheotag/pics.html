@@ -119,7 +119,7 @@
         <input id="filter" type="text" value="{{ filter::input }}"/>
         <div id="container">
             <template is="dom-repeat" items="[[ photos ]]">
-                <div class="photo">
+                <div class="photo" title$="[[ _tooltip(item) ]]">
                     <div class="date">
                         [[ _date(item.dateOriginal, item.timeOriginal) ]]
                     </div>
@@ -219,6 +219,20 @@
                     //console.warn( e );
                     return 'UNKNOWN DATE';
                 }
+            }
+
+            /**
+             *
+             */
+            _tooltip( photo ) {
+                let tooltip = [];
+                tooltip.push( 'Date: ' + photo.date );
+                tooltip.push( 'Time: ' + photo.time );
+                tooltip.push( `Latitude: ${ this._round(photo.latitude) }°`);
+                tooltip.push( `Longitude: ${ this._round(photo.longitude) }°`);
+                tooltip.push( 'Altitude: ' + photo.altitude);
+                tooltip.push( 'File: ' + photo.uri );
+                return tooltip.join( '\n' );
             }
 
             /**

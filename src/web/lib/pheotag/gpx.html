@@ -214,6 +214,9 @@
                 }
             }
 
+            /**
+             *
+             */
             _tooltip( waypoint ) {
                 let tooltip = [];
                 tooltip.push( 'Title: ' + waypoint.title );
@@ -222,7 +225,6 @@
                 tooltip.push( `Coordinates: ${ this._round(waypoint.latitude) }°, ${ this._round(waypoint.longitude) }°`);
                 tooltip.push( 'Altitude: ' + waypoint.altitude);
                 tooltip.push( 'Link: ' + waypoint.link );
-                console.log( tooltip );
                 return tooltip.join( '\n' );
             }
 
