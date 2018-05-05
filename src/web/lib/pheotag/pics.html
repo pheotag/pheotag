@@ -17,7 +17,7 @@
                 cursor: pointer;
             }
             .file {
-                flex: content;
+                flex: initial;
                 overflow-x: hidden;
                 word-wrap: none;
                 white-space: nowrap;
@@ -35,6 +35,12 @@
             }
             .save {
                 color: royalblue;
+            }
+            #filter {
+                flex: initial;
+                margin: 0.25em;
+                width: calc(100% - 0.75em);
+                outline: none; /* disable chromium highlighting of input fields */
             }
             #container {
                 flex: 1;
@@ -91,7 +97,7 @@
                 font-family: monospace;
             }
             .control {
-                flex: 0;
+                flex: initial;
                 display: table;
                 width: calc(100% - 2*0.15em);
                 padding: 0.15em;
@@ -110,6 +116,7 @@
             <button class="clear" on-click="_clickClear" title="Clear the list of photos">&#10008;</button>
             <button class="save" on-click="_clickSave" title="Save the modified EXIF data to all photo files">&#129095;</button>
         </div>
+        <input id="filter" type="text" value="{{ filter::input }}"/>
         <div id="container">
             <template is="dom-repeat" items="[[ photos ]]">
                 <div class="photo">
