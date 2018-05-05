@@ -16,55 +16,85 @@
             button {
                 cursor: pointer;
             }
-            #file {
-                flex: 0;
-                border: 1px solid lightgrey;
+            .file {
+                flex: content;
+                overflow-x: hidden;
+                word-wrap: none;
+                white-space: nowrap;
                 padding: 0.25em;
+                border-bottom: 1px solid lightgrey;
+            }
+            #file {
                 outline: none; /* disable chromium highlighting of input fields */
                 -webkit-appearance: none;
                    -moz-appearance: none;
                         appearance: none;
             }
+            .clear {
+                color: red;
+            }
+            .export {
+                color: royalblue;
+            }
             #container {
                 flex: 1;
                 overflow-y: scroll;
             }
-            .photo {
+            .waypoint {
                 margin: 10px;
                 border: 1px solid black;
+                background-color: black;
                 box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
             }
-            .thumbnail {
-                display: block;
-                width: 100%;
-            }
-            .date {
+            .time {
                 color: whitesmoke;
-                background-color: black;
                 padding: 0.15em;
                 text-align: center;
             }
-            .position {
-                display: flex;
-                align-items: baseline;
+            .title {
                 color: whitesmoke;
-                background-color: black;
+                padding: 0.15em;
+            }
+            .description {
+                color: whitesmoke;
+                padding: 0.15em;
+            }
+            .media {
+                color: whitesmoke;
+                padding: 0.15em;
+                text-align: left;
             }
             .latlong {
-                flex: 1;
+                color: whitesmoke;
                 padding: 0.15em;
                 text-align: center;
                 font-family: monospace;
             }
             .control {
                 flex: 0;
-                white-space: nowrap;
+                display: table;
+                width: calc(100% - 2*0.15em);
                 padding: 0.15em;
             }
         </style>
-        <input id="file" type="file" on-change="_changedGeoFile" accept=".gpx" />
+        <div class="file">
+                <input id="file" type="file" on-change="_changedGeoFile" accept=".gpx,.kml" />
+            <button class="clear" on-click="_clickClear" title="Clear the list of waypoints">&#10008;</button>
+            <button class="export" on-click="_clickExport" title="Export the list of waypoints">&#129095;</button>
+        </div>
         <div id="container">
-            <template is="dom-repeat" items="[[ locations ]]">
+            <template is="dom-repeat" items="[[ geo.waypoints ]]">
+                <div class="waypoint">
+                    <div class="time">[[ item.time ]]</div>
+                    <div style$="display: block;">
+                        <div class="media">[[ item.link ]]</div>
+                        <div class="title">[[ item.title ]]</div>
+                        <div class="description">[[ item.description ]]</div>
+                    </div>
+                    <div class="latlong">
+                            [[ _round(item.latitude) ]]&deg;, [[ _round(item.longitude) ]]&deg;
+                    </div>
+                </div>
                 <!--
                 <div class="photo">
                     <div class="date">
@@ -87,6 +117,9 @@
     </template>
 
     <script>
+        // import photo reference class from electron
+        var GeoFile = require( 'electron' ).remote.require( './geofile.js' );
+
         /** @polymerElement */
         class GeoTagGpx extends Polymer.Element {
 
@@ -122,7 +155,7 @@
              */
             ready() {
                 super.ready();
-                this.locations = [];
+                this.geo = new GeoFile();
             }
 
             /**
@@ -140,9 +173,8 @@
             /**
              *
              */
-            _date( date, time ) {
+            _date( timestamp ) {
                 try {
-                    let dateTime = new Date( `${date} ${time}` );
                     let options = {
                         weekday: 'short',
                         year: 'numeric',
@@ -150,7 +182,8 @@
                         day: 'numeric',
                         hour: 'numeric',
                         minute: 'numeric',
-                        second: 'numeric'
+                        second: 'numeric',
+                        timeone: null
                     };
                     return dateTime.toLocaleDateString( undefined, options );
                 } catch( e ) {
@@ -163,11 +196,37 @@
              *
              */
             _changedGeoFile( event ) {
-                /*
-                this.locations = [... this.$.file.files].map( ( file ) => {
-                    return ( new GeoReference( file.path ) );
-                } );
-                */
+                try {
+                    console.log( event );
+                    this.geo.importGEO( 'test.gpx' );
+                    this.notifyPath( 'geo.waypoints' );
+                    console.log( 'TODO: clear file input ...' );
+                } catch( e ) {
+                    //console.warn( e );
+                }
+            }
+
+            /**
+             *
+             */
+            _clickClear( event ) {
+                try {
+                    this.set( 'geo.waypoints', [] );
+                    console.log( 'TODO: clear file input ...' );
+                } catch( e ) {
+                    console.warn( e );
+                }
+            }
+
+            /**
+             *
+             */
+            _clickExport( event ) {
+                try {
+                    console.log( event );
+                } catch( e ) {
+                    console.warn( e );
+                }
             }
 
             /**
@@ -195,7 +254,7 @@
             photoEventHandler( event ) {
                 try {
                     let photo = event.detail;
-                    console.log( 'addPhotoEventListener', photo.uri );
+                    console.log( 'addPhotoEventListener', photo.orientation, photo.uri, photo );
                     this._timezoneOffset( photo.latitude, photo.longitude, photo.dateOriginal, photo.timeOriginal );
                 } catch( e ) {
                     console.error( e );
