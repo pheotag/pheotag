@@ -16,14 +16,25 @@
             button {
                 cursor: pointer;
             }
-            #file {
-                flex: 0;
-                border: 1px solid lightgrey;
+            .file {
+                flex: content;
+                overflow-x: hidden;
+                word-wrap: none;
+                white-space: nowrap;
                 padding: 0.25em;
+                border-bottom: 1px solid lightgrey;
+            }
+            #file {
                 outline: none; /* disable chromium highlighting of input fields */
                 -webkit-appearance: none;
                    -moz-appearance: none;
                         appearance: none;
+            }
+            .clear {
+                color: red;
+            }
+            .save {
+                color: royalblue;
             }
             #container {
                 flex: 1;
@@ -94,7 +105,11 @@
                 text-align: right;
             }
         </style>
-        <input id="file" type="file" on-change="_changedImageFiles" accept=".jpg" multiple />
+        <div class="file">
+            <input id="file" type="file" on-change="_changedImageFiles" accept=".jpg" multiple />
+            <button class="clear" on-click="_clickClear" title="Clear the list of photos">&#10008;</button>
+            <button class="save" on-click="_clickSave" title="Save the EXIF data for all photo files">&#128393;</button>
+        </div>
         <div id="container">
             <template is="dom-repeat" items="[[ photos ]]">
                 <div class="photo">
@@ -111,7 +126,7 @@
                         <div class="left">
                             <button on-click="_clickShowGeoTag" title="Show the location of this photo in the map">&#128065;</button>
                             <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this photo">&#10004;</button>
-                            <button on-click="_clickAddToGPX" title="Add this photo to the GPX file">&#10133;</button>
+                            <button on-click="_clickAddToGPX" title="Add this photo to the list of waypoints">&#10133;</button>
                         </div>
                         <div class="right">
                             <button on-click="_clickReloadEXIF" title="Reload the EXIF data of this photo from the file">&#128259;</button>
@@ -211,8 +226,32 @@
                         throw new Error( 'No valid JPEG photos!' );
                     }
                     this.photos = jpegs;
-                } catch( ex ) {
-                    //console.warn( ex );
+                    console.log( 'TODO: clear file input ...' );
+                } catch( e ) {
+                    //console.warn( e );
+                }
+            }
+
+            /**
+             *
+             */
+            _clickClear( event ) {
+                try {
+                    this.set( 'photos', [] );
+                    console.warn( 'TODO: clear file input ...' );
+                } catch( e ) {
+                    console.warn( e );
+                }
+            }
+
+            /**
+             *
+             */
+            _clickSave( event ) {
+                try {
+                    console.log( event );
+                } catch( e ) {
+                    console.warn( e );
                 }
             }
 
