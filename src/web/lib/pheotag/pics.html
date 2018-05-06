@@ -213,7 +213,7 @@
                         minute: 'numeric',
                         second: 'numeric'
                     };
-                    return dateTime.toLocaleDateString( undefined, options );
+                    return dateTime.toLocaleString( undefined, options );
                 } catch( e ) {
                     //console.warn( e );
                     return 'UNKNOWN DATE';
