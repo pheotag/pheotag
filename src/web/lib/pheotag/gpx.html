@@ -96,7 +96,7 @@
                         <div class="left">
                             <button on-click="_clickShowGeoTag" title="Show the location of this waypoint in the map">&#128065;</button>
                             <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this waypoint">&#128205;</button>
-                            <button on-click="_clickUpdateTimezone" title="Find and show the timezone offset for this waypoint">&#128336;</button>
+                            <button on-click="_clickUpdateTimezone" title="Lookup the timezone offset for this location">&#128336;</button>
                             <button on-click="_clickEditWaypoint" title="Edit the waypoint" disabled>&#128393;</button>
                         </div>
                         <div class="right">
@@ -279,9 +279,9 @@
                 try {
                     let photo = event.detail;
                     let dateTime = photo.dateOriginal + ' ' + photo.timeOriginal;
-                    this._timezoneOffset( photo.latitude, photo.longitude, new Date( dateTime ) )
+                    this._getTimezoneForLocation( photo.latitude, photo.longitude, new Date( dateTime ) )
                     .then( ( timezone ) => {
-                        let offset = this._timezoneOffsetString( timezone.rawOffset, timezone.dstOffset );
+                        let offset = this._getTimezoneOffset( timezone );
                         let link = photo.uri.split( '/' );
                         link = link[link.length - 1];
                         dateTime = new Date( dateTime + ' ' + offset );
@@ -348,7 +348,7 @@
                 try {
                     let waypoint = event.model.item;
                     let index = this.geo.waypoints.findIndex( w => w === waypoint );
-                    this._timezoneOffset( waypoint.latitude, waypoint.longitude, waypoint.time )
+                    this._getTimezoneForLocation( waypoint.latitude, waypoint.longitude, waypoint.time )
                     .then( ( timezone ) => {
                         this.set( `geo.waypoints.${index}.timezone`, timezone.timeZoneId );
                     } )
@@ -361,53 +361,36 @@
             }
 
             /**
-             * Determine the timezone offset for the given local date and time
-             * regarding the given coordinates.
+             * Determine the timezone for the given local date and time at the given coordinates.
              */
-            _timezoneOffset( lat, long, dateTime ) {
+            _getTimezoneForLocation( lat, long, dateTime ) {
                 let key = 'AIzaSyAI65pf3plY-90Ja59xMLFyPrIewKJ93eM';
                 let ts = Math.floor( dateTime.getTime() / 1000 );
                 let uri = `https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${long}&timestamp=${ts}&key=${key}`;
-                return new Promise( ( resolve, reject ) => {
-                    fetch( uri )
-                    .then( ( response ) => {
-                        try {
-                            if( !response.headers.get( 'Content-Type' ).startsWith( 'application/json' ) ) {
-                                throw new Error( 'Response is not in JSON format!' );
-                            }
-                            if( response.status !== 200 ) {
-                                throw new Error( 'Status code: ' + response.status );
-                            }
-                            response.json()
-                            .then( ( content ) => {
-                                try {
-                                    if( content.status !== 'OK' ) {
-                                        throw new Error( content.status );
-                                    }
-                                    resolve( content );
-                                } catch( e ) {
-                                    reject( e );
-                                }
-                            } )
-                            .catch( ( e ) => {
-                                reject( e );
-                            } );
-                        } catch( e ) {
-                            reject( e );
-                        }
-                    } )
-                    .catch( ( e ) => {
-                        reject( e );
-                    } );
+                return fetch( uri )
+                .then( ( response ) => {
+                    if( !response.headers.get( 'Content-Type' ).startsWith( 'application/json' ) ) {
+                        throw new Error( 'Response is not in JSON format!' );
+                    }
+                    if( response.status !== 200 ) {
+                        throw new Error( 'Status code: ' + response.status );
+                    }
+                    return response.json();
+                } )
+                .then( ( json ) => {
+                    if( json.status !== 'OK' ) {
+                        throw new Error( json.status );
+                    }
+                    return json;
                 } );
             }
 
             /**
-             * 
+             * Get the signed 4 digit UTC offset for the given timezone (±HHMM)
              */
-            _timezoneOffsetString( offsetRAW, offsetDST ) {
+            _getTimezoneOffset( timezone ) {
                 try {
-                    let offset = offsetRAW + offsetDST;
+                    let offset = timezone.rawOffset + timezone.dstOffset;
                     let sign = ( offset > 0 ? '+' : '-' );
                     let hours = Math.floor( offset / 3600 );
                     let minutes = Math.floor( ( offset - ( 3600 * hours ) ) / 60 );
