@@ -79,6 +79,7 @@
                 text-align: right;
             }
             .insertor {
+                margin-top: 10px;
                 text-align: center;
             }
         </style>
@@ -90,7 +91,7 @@
         <input id="filter" type="text" value="{{ filter::input }}"/>
         <div id="container">
             <div class="insertor">
-                <button on-click="_clickInsertWaypoint" title="Insert a new waypoint">&#10133;</button>
+                <button on-click="_clickInsertWaypoint" title="Insert a new waypoint with the current location from the map at the beginning">&#10133;</button>
             </div>
             <template is="dom-repeat" items="[[ geo.waypoints ]]">
                 <div class$="waypoint [[ _classForWaypoint(item) ]]" title$="[[ _tooltip(item) ]]">
@@ -106,13 +107,16 @@
                             <button on-click="_clickEditWaypoint" title="Edit the waypoint" disabled>&#128393;</button>
                         </div>
                         <div class="right">
+                            <button on-click="_clickInsertWaypoint" title="Insert a new waypoint with the current location from the map after this waypoint">&#10133;</button>
                             <button class="clear" on-click="_clickRemoveWaypoint" title="Remove this waypoint from the list">&#10134;</button>
                         </div>
                     </div>
                 </div>
+                <!--
                 <div class="insertor">
                     <button on-click="_clickInsertWaypoint" title="Insert a new waypoint">&#10133;</button>
                 </div>
+                -->
             </template>
         </div>
     </template>
@@ -168,7 +172,6 @@
                 try {
                     return value.toFixed( 5 );
                 } catch( e ) {
-                    console.warn( e );
                     return Number.NaN;
                 }
             }
@@ -191,7 +194,6 @@
                     };
                     return dateTime.toLocaleString( undefined, options );
                 } catch( e ) {
-                    console.warn( e );
                     return 'UNKNOWN DATE & TIME';
                 }
             }
@@ -232,12 +234,11 @@
              */
             _changedGeoFile( event ) {
                 try {
-                    console.log( event );
                     this.geo.importGEO( 'test.gpx' );
                     this.notifyPath( 'geo.waypoints' );
                     console.log( 'TODO: clear file input ...' );
                 } catch( e ) {
-                    //console.warn( e );
+                    throw e;
                 }
             }
 
@@ -287,14 +288,14 @@
              */
             _clickUpdateTimezone( event ) {
                 try {
-                    let waypoint = event.model.item;
                     let index = event.model.index;
+                    let waypoint = event.model.item;
                     this._getTimezoneForLocation( waypoint.latitude, waypoint.longitude, waypoint.time )
                     .then( ( timezone ) => {
                         this.set( `geo.waypoints.${index}.timezone`, timezone.timeZoneId );
                     } )
                     .catch( ( e ) => {
-                        console.error( e );
+                        throw e;
                     } );
                 } catch( e ) {
                     throw e;
@@ -306,18 +307,16 @@
              */
             _clickRemoveWaypoint( event ) {
                 try {
-                    console.log(  );
-                    let waypoint = event.model.item;
                     let index = event.model.index;
+                    let waypoint = event.model.item;
                     let waypoints = this.geo.waypoints;
                     waypoints.splice( index, 1 );
                     this.set( 'geo.waypoints', waypoints );
-                    /* simple versions do not work for some reason ...
-                    this.splice( 'geo.waypoints', index );
+                    // simple versions do not work for some reason ...
+                    //this.splice( 'geo.waypoints', index );
                     // or
-                    this.geo.waypoints.splice( index );
-                    this.notifyPath( 'geo.waypoints' );
-                    */
+                    //this.geo.waypoints.splice( index );
+                    //this.notifyPath( 'geo.waypoints' );
                 } catch( e ) {
                     throw e;
                 }
@@ -328,10 +327,9 @@
              */
             _clickInsertWaypoint( event ) {
                 try {
-                    console.log( event );
                     let index = ( event.model ? event.model.index : -1 );
                     let waypoints = this.geo.waypoints;
-                    waypoints.splice( index, 0, new Waypoint( this.longitude, this.latitude ) );
+                    waypoints.splice( index + 1, 0, new Waypoint( this.longitude, this.latitude ) );
                     this.set( 'geo.waypoints', waypoints );
                 } catch( e ) {
                     throw e;
@@ -354,7 +352,7 @@
                         this._addWaypoint( '', '', dateTime, timezone, photo.latitude, photo.longitude, 0.0, link );
                     } )
                     .catch( ( e ) => {
-                        console.error( e );
+                        throw e;
                     } );
                 } catch( e ) {
                     throw e;
@@ -391,26 +389,32 @@
              * Determine the timezone for the given local date and time at the given coordinates.
              * Returns a promise.
              */
-            _getTimezoneForLocation( lat, long, dateTime ) {
-                let key = 'AIzaSyAI65pf3plY-90Ja59xMLFyPrIewKJ93eM';
-                let ts = Math.floor( dateTime.getTime() / 1000 );
-                let uri = `https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${long}&timestamp=${ts}&key=${key}`;
-                return fetch( uri )
-                .then( ( response ) => {
-                    if( !response.headers.get( 'Content-Type' ).startsWith( 'application/json' ) ) {
-                        throw new Error( 'Response is not in JSON format!' );
-                    }
-                    if( response.status !== 200 ) {
-                        throw new Error( 'Status code: ' + response.status );
-                    }
-                    return response.json();
-                } )
-                .then( ( json ) => {
-                    if( json.status !== 'OK' ) {
-                        throw new Error( json.status );
-                    }
-                    return json;
-                } );
+            _getTimezoneForLocation( latitude, longitude, dateTime ) {
+                try {
+                    let key = 'AIzaSyAI65pf3plY-90Ja59xMLFyPrIewKJ93eM';
+                    let ts = Math.floor( dateTime.getTime() / 1000 );
+                    let uri = `https://maps.googleapis.com/maps/api/timezone/json?location=${latitude},${longitude}&timestamp=${ts}&key=${key}`;
+                    return fetch( uri )
+                    .then( ( response ) => {
+                        if( !response.headers.get( 'Content-Type' ).startsWith( 'application/json' ) ) {
+                            throw new Error( 'Response is not in JSON format!' );
+                        }
+                        if( response.status !== 200 ) {
+                            throw new Error( 'Status code: ' + response.status );
+                        }
+                        return response.json();
+                    } )
+                    .then( ( json ) => {
+                        if( json.status !== 'OK' ) {
+                            throw new Error( json.status );
+                        }
+                        return json;
+                    } );
+                } catch( e ) {
+                    return new Promise( ( resolve, reject ) => {
+                        reject( e );
+                    } );
+                }
             }
 
             /**
