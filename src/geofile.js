@@ -2,6 +2,7 @@ const fs = require( 'fs' );
 const url = require( 'url' );
 const path = require( 'path' );
 const piexif = require( 'xml2js' );
+const Waypoint = require( './waypoint' );
 
 /**
  * 
@@ -43,26 +44,8 @@ class GeoFile {
         try {
             console.log( 'TODO: import GPX ...', gpx );
             this.waypoints = [
-                {
-                    title: 'A',
-                    description: 'aaa',
-                    time: new Date(),
-                    timezone: undefined,
-                    latitude: 1.234567,
-                    longitude: 7.654321,
-                    altitude: 0.0,
-                    link: 'DSC0001.jpg'
-                },
-                {
-                    title: 'Z',
-                    description: 'zzz',
-                    time: new Date(),
-                    timezone: undefined,
-                    latitude: 1.234567,
-                    longitude: 7.654321,
-                    altitude: 0.0,
-                    link: ''
-                }
+                new Waypoint( 70.0, 70.0 ),
+                new Waypoint( 71.0, 71.0 )
             ];
         } catch( e ) {
             console.error( e );

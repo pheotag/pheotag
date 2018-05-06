@@ -78,6 +78,9 @@
                 display: table-cell;
                 text-align: right;
             }
+            .insertor {
+                text-align: center;
+            }
         </style>
         <div class="file">
                 <input id="file" type="file" on-change="_changedGeoFile" accept=".gpx,.kml" />
@@ -86,6 +89,9 @@
         </div>
         <input id="filter" type="text" value="{{ filter::input }}"/>
         <div id="container">
+            <div class="insertor">
+                <button on-click="_clickInsertWaypoint" title="Insert a new waypoint">&#10133;</button>
+            </div>
             <template is="dom-repeat" items="[[ geo.waypoints ]]">
                 <div class$="waypoint [[ _classForWaypoint(item) ]]" title$="[[ _tooltip(item) ]]">
                     <div class="time">[[ _date(item.time,item.timezone) ]]</div>
@@ -104,6 +110,9 @@
                         </div>
                     </div>
                 </div>
+                <div class="insertor">
+                    <button on-click="_clickInsertWaypoint" title="Insert a new waypoint">&#10133;</button>
+                </div>
             </template>
         </div>
     </template>
@@ -111,6 +120,7 @@
     <script>
         // import photo reference class from electron
         var GeoFile = require( 'electron' ).remote.require( './geofile.js' );
+        var Waypoint = require( 'electron' ).remote.require( './waypoint.js' );
 
         /** @polymerElement */
         class GeoTagGpx extends Polymer.Element {
@@ -182,7 +192,7 @@
                     return dateTime.toLocaleString( undefined, options );
                 } catch( e ) {
                     console.warn( e );
-                    return 'UNKNOWN DATE';
+                    return 'UNKNOWN DATE & TIME';
                 }
             }
 
@@ -193,7 +203,7 @@
                 let tooltip = [];
                 tooltip.push( 'Title: ' + waypoint.title );
                 tooltip.push( 'Description: ' + waypoint.description );
-                tooltip.push( 'Time (ISO): ' + waypoint.time.toISOString() );
+                tooltip.push( 'Time (ISO): ' + ( waypoint.time ? waypoint.toISOString() : 'UNKNOWN DATE & TIME' ) );
                 tooltip.push( `Coordinates: ${ this._round(waypoint.latitude) }°, ${ this._round(waypoint.longitude) }°`);
                 tooltip.push( 'Altitude: ' + waypoint.altitude);
                 tooltip.push( 'Link: ' + waypoint.link );
@@ -239,7 +249,7 @@
                     this.set( 'geo.waypoints', [] );
                     console.log( 'TODO: clear file input ...' );
                 } catch( e ) {
-                    console.warn( e );
+                    throw e;
                 }
             }
 
@@ -250,7 +260,7 @@
                 try {
                     console.log( event );
                 } catch( e ) {
-                    console.warn( e );
+                    throw e;
                 }
             }
 
@@ -267,9 +277,65 @@
              *
              */
             _clickApplyGeoTag( event ) {
-                let index = this.geo.waypoints.indexOf( event.model.item );
+                let index = event.model.index;
                 this.set( `geo.waypoints.${index}.latitude`, this.latitude );
                 this.set( `geo.waypoints.${index}.longitude`, this.longitude );
+            }
+
+            /**
+             *
+             */
+            _clickUpdateTimezone( event ) {
+                try {
+                    let waypoint = event.model.item;
+                    let index = event.model.index;
+                    this._getTimezoneForLocation( waypoint.latitude, waypoint.longitude, waypoint.time )
+                    .then( ( timezone ) => {
+                        this.set( `geo.waypoints.${index}.timezone`, timezone.timeZoneId );
+                    } )
+                    .catch( ( e ) => {
+                        console.error( e );
+                    } );
+                } catch( e ) {
+                    throw e;
+                }
+            }
+
+            /**
+             *
+             */
+            _clickRemoveWaypoint( event ) {
+                try {
+                    console.log(  );
+                    let waypoint = event.model.item;
+                    let index = event.model.index;
+                    let waypoints = this.geo.waypoints;
+                    waypoints.splice( index, 1 );
+                    this.set( 'geo.waypoints', waypoints );
+                    /* simple versions do not work for some reason ...
+                    this.splice( 'geo.waypoints', index );
+                    // or
+                    this.geo.waypoints.splice( index );
+                    this.notifyPath( 'geo.waypoints' );
+                    */
+                } catch( e ) {
+                    throw e;
+                }
+            }
+
+            /**
+             *
+             */
+            _clickInsertWaypoint( event ) {
+                try {
+                    console.log( event );
+                    let index = ( event.model ? event.model.index : -1 );
+                    let waypoints = this.geo.waypoints;
+                    waypoints.splice( index, 0, new Waypoint( this.longitude, this.latitude ) );
+                    this.set( 'geo.waypoints', waypoints );
+                } catch( e ) {
+                    throw e;
+                }
             }
 
             /**
@@ -291,7 +357,7 @@
                         console.error( e );
                     } );
                 } catch( e ) {
-                    console.error( e );
+                    throw e;
                 }
             }
 
@@ -303,37 +369,17 @@
                     let waypoints = this.geo.waypoints;
                     let index = waypoints.findIndex( w => w.link === link );
                     if( index < 0 || confirm( `A waypoint for '${link}' already exist.\n\nReplace the existing waypoint?` ) ) {
-                        let waypoint = {
-                            title: title,
-                            description: description,
-                            time: time,
-                            timezone: timezone.timeZoneId,
-                            latitude: latitude,
-                            longitude: longitude,
-                            altitude: altitude,
-                            link: link
-                        };
+                        let waypoint = new Waypoint( latitude, longitude );
+                        waypoint.title = title;
+                        waypoint.description = description;
+                        waypoint.time = time;
+                        waypoint.timezone = timezone.timeZoneId;
+                        waypoint.altitude = altitude;
+                        waypoint.link = link;
                         waypoints.push( waypoint );
                         if( index > -1 ) {
                             waypoints.splice( index, 1 );
                         }
-                        this.set( 'geo.waypoints', waypoints );
-                    }
-                } catch( e ) {
-                    console.warn( e );
-                }
-            }
-
-            /**
-             *
-             */
-            _clickRemoveWaypoint( event ) {
-                try {
-                    let waypoint = event.model.item;
-                    let waypoints = this.geo.waypoints;
-                    let index = waypoints.findIndex( w => w === waypoint );
-                    if( index > -1 ) {
-                        waypoints.splice( index, 1 );
                         this.set( 'geo.waypoints', waypoints );
                     }
                 } catch( e ) {
@@ -342,26 +388,8 @@
             }
 
             /**
-             *
-             */
-            _clickUpdateTimezone( event ) {
-                try {
-                    let waypoint = event.model.item;
-                    let index = this.geo.waypoints.findIndex( w => w === waypoint );
-                    this._getTimezoneForLocation( waypoint.latitude, waypoint.longitude, waypoint.time )
-                    .then( ( timezone ) => {
-                        this.set( `geo.waypoints.${index}.timezone`, timezone.timeZoneId );
-                    } )
-                    .catch( ( e ) => {
-                        console.error( e );
-                    } );
-                } catch( e ) {
-                    console.error( e );
-                }
-            }
-
-            /**
              * Determine the timezone for the given local date and time at the given coordinates.
+             * Returns a promise.
              */
             _getTimezoneForLocation( lat, long, dateTime ) {
                 let key = 'AIzaSyAI65pf3plY-90Ja59xMLFyPrIewKJ93eM';
