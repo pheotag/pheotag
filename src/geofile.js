@@ -105,6 +105,37 @@ class GeoFile {
             console.error( e );
         }
     }
+
+    /**
+     * Insert a new waypoint after the given index, or at the end if no valid index is given.
+     */
+    addWaypoint( index, title, description, time, timezoneID, latitude, longitude, altitude, link ) {
+        try {
+            index = ( typeof( index ) === 'number' ? index : this.waypoints.length - 1 );
+            let waypoint = new Waypoint( latitude, longitude );
+            waypoint.title = title;
+            waypoint.description = description;
+            waypoint.time = time;
+            waypoint.timezone = timezoneID;
+            waypoint.altitude = altitude;
+            waypoint.link = link;
+            //this.waypoints.push( waypoint );
+            this.waypoints.splice( index + 1, 0, waypoint );
+        } catch( e ) {
+            throw e;
+        }
+    }
+
+    /**
+     * 
+     */
+    removeWaypoint( index ) {
+        try {
+            this.waypoints.splice( index, 1 );
+        } catch( e ) {
+            throw e;
+        }
+    }
 }
 
 module.exports = GeoFile;

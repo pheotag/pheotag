@@ -124,7 +124,6 @@
     <script>
         // import photo reference class from electron
         var GeoFile = require( 'electron' ).remote.require( './geofile.js' );
-        var Waypoint = require( 'electron' ).remote.require( './waypoint.js' );
 
         /** @polymerElement */
         class GeoTagGpx extends Polymer.Element {
@@ -308,15 +307,8 @@
             _clickRemoveWaypoint( event ) {
                 try {
                     let index = event.model.index;
-                    let waypoint = event.model.item;
-                    let waypoints = this.geo.waypoints;
-                    waypoints.splice( index, 1 );
-                    this.set( 'geo.waypoints', waypoints );
-                    // simple versions do not work for some reason ...
-                    //this.splice( 'geo.waypoints', index );
-                    // or
-                    //this.geo.waypoints.splice( index );
-                    //this.notifyPath( 'geo.waypoints' );
+                    this.geo.removeWaypoint( index );
+                    this.notifyPath( 'geo.waypoints' );
                 } catch( e ) {
                     throw e;
                 }
@@ -328,9 +320,8 @@
             _clickInsertWaypoint( event ) {
                 try {
                     let index = ( event.model ? event.model.index : -1 );
-                    let waypoints = this.geo.waypoints;
-                    waypoints.splice( index + 1, 0, new Waypoint( this.longitude, this.latitude ) );
-                    this.set( 'geo.waypoints', waypoints );
+                    this.geo.addWaypoint( index, undefined, undefined, undefined, undefined, this.latitude, this.longitude, undefined, undefined );
+                    this.notifyPath( 'geo.waypoints' );
                 } catch( e ) {
                     throw e;
                 }
@@ -342,43 +333,24 @@
             photoEventHandler( event ) {
                 try {
                     let photo = event.detail;
+                    let link = photo.uri.split( '/' );
+                    link = link[link.length - 1];
                     let dateTime = photo.dateOriginal + ' ' + photo.timeOriginal;
-                    this._getTimezoneForLocation( photo.latitude, photo.longitude, new Date( dateTime ) )
-                    .then( ( timezone ) => {
-                        let offset = this._getTimezoneOffset( timezone );
-                        let link = photo.uri.split( '/' );
-                        link = link[link.length - 1];
-                        dateTime = new Date( dateTime + ' ' + offset );
-                        this._addWaypoint( '', '', dateTime, timezone, photo.latitude, photo.longitude, 0.0, link );
-                    } )
-                    .catch( ( e ) => {
-                        throw e;
-                    } );
-                } catch( e ) {
-                    throw e;
-                }
-            }
-
-            /**
-             * 
-             */
-            _addWaypoint( title, description, time, timezone, latitude, longitude, altitude, link ) {
-                try {
-                    let waypoints = this.geo.waypoints;
-                    let index = waypoints.findIndex( w => w.link === link );
+                    let index = this.geo.waypoints.findIndex( w => w.link === link );
                     if( index < 0 || confirm( `A waypoint for '${link}' already exist.\n\nReplace the existing waypoint?` ) ) {
-                        let waypoint = new Waypoint( latitude, longitude );
-                        waypoint.title = title;
-                        waypoint.description = description;
-                        waypoint.time = time;
-                        waypoint.timezone = timezone.timeZoneId;
-                        waypoint.altitude = altitude;
-                        waypoint.link = link;
-                        waypoints.push( waypoint );
-                        if( index > -1 ) {
-                            waypoints.splice( index, 1 );
-                        }
-                        this.set( 'geo.waypoints', waypoints );
+                        this._getTimezoneForLocation( photo.latitude, photo.longitude, new Date( dateTime ) )
+                        .then( ( timezone ) => {
+                            let offset = this._getTimezoneOffset( timezone );
+                            dateTime = new Date( dateTime + ' ' + offset );
+                            this.geo.addWaypoint( index, '', '', dateTime, timezone.timeZoneId, photo.latitude, photo.longitude, 0.0, link );
+                            if( index > -1 ) {
+                                this.geo.removeWaypoint( index );
+                            }
+                            this.notifyPath( 'geo.waypoints' );
+                        } )
+                        .catch( ( e ) => {
+                            throw e;
+                        } );
                     }
                 } catch( e ) {
                     throw e;
