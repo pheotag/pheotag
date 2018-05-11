@@ -151,8 +151,23 @@
                         value: Number.NaN,
                         notify: true, // enable upward data flow,
                         //readOnly: true, // prevent downward data flow
+                    },
+                    waypoints: {
+                        type: Array,
+                        value: new Array(),
+                        notify: true, // enable upward data flow,
+                        //readOnly: true, // prevent downward data flow
                     }
                 };
+            }
+
+            /**
+             *
+             */
+            static get observers() {
+                return [
+                    '_geoWaypointsChanged(geo.waypoints)'
+                ]
             }
 
             /**
@@ -204,7 +219,7 @@
                 let tooltip = [];
                 tooltip.push( 'Title: ' + waypoint.title );
                 tooltip.push( 'Description: ' + waypoint.description );
-                tooltip.push( 'Time (ISO): ' + ( waypoint.time ? waypoint.toISOString() : 'UNKNOWN DATE & TIME' ) );
+                tooltip.push( 'Time (ISO): ' + ( waypoint.time ? waypoint.time.toISOString() : 'UNKNOWN DATE & TIME' ) );
                 tooltip.push( `Coordinates: ${ this._round(waypoint.latitude) }°, ${ this._round(waypoint.longitude) }°`);
                 tooltip.push( 'Altitude: ' + waypoint.altitude);
                 tooltip.push( 'Link: ' + waypoint.link );
@@ -280,6 +295,7 @@
                 let index = event.model.index;
                 this.set( `geo.waypoints.${index}.latitude`, this.latitude );
                 this.set( `geo.waypoints.${index}.longitude`, this.longitude );
+                this._geoWaypointsChanged( this.geo.waypoints );
             }
 
             /**
@@ -292,6 +308,7 @@
                     this._getTimezoneForLocation( waypoint.latitude, waypoint.longitude, waypoint.time )
                     .then( ( timezone ) => {
                         this.set( `geo.waypoints.${index}.timezone`, timezone.timeZoneId );
+                        this._geoWaypointsChanged( this.geo.waypoints );
                     } )
                     .catch( ( e ) => {
                         throw e;
@@ -404,6 +421,13 @@
                 } catch ( e ) {
                     throw e;
                 }
+            }
+
+            /**
+             *
+             */
+            _geoWaypointsChanged( waypoints ) {
+                this.set( 'waypoints', waypoints.sort( w => ( w.dateTime ? w.dateTime.getTime() : -1 ) ) );
             }
         }
         window.customElements.define(GeoTagGpx.is, GeoTagGpx);

@@ -52,6 +52,13 @@
                         notify: true, // enable upward data flow,
                         //readOnly: true, // prevent downward data flow
                         observer: '_onTagChanged'
+                    },
+                    waypoints: {
+                        type: Array,
+                        value: new Array(),
+                        notify: false, // prevent upward data flow,
+                        //readOnly: true, // prevent downward data flow
+                        observer: '_onWaypointsChanged'
                     }
                 };
             }
@@ -218,6 +225,20 @@
                     }, 50 );
                 } catch( e ) {
                     console.warn( e );
+                }
+            }
+
+            /**
+             * 
+             */
+            _onWaypointsChanged( value ) {
+                try {
+                    if( this._path ) {
+                        let path = value.map( w => new google.maps.LatLng( w.latitude, w.longitude ) );
+                        this._path.setPath( path );
+                    }
+                } catch( e ) {
+                    throw e;
                 }
             }
         }
