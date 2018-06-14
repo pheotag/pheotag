@@ -15,6 +15,8 @@
             }
             button {
                 cursor: pointer;
+                font-family: 'FA-5 Solid';
+                font-size: 1.25em;
             }
             .file {
                 flex: initial;
@@ -85,13 +87,13 @@
         </style>
         <div class="file">
                 <input id="file" type="file" on-change="_changedGeoFile" accept=".gpx,.kml" />
-            <button class="clear" on-click="_clickClear" title="Clear the list of waypoints">&#10008;</button>
-            <button class="export" on-click="_clickExport" title="Export the list of waypoints">&#129095;</button>
+            <button class="clear" on-click="_clickClear" title="Clear the list of waypoints">&#xF00D;</button>
+            <button class="export" on-click="_clickExport" title="Export the list of waypoints">&#xF019;</button>
         </div>
         <input id="filter" type="text" value="{{ filter::input }}"/>
         <div id="container">
             <div class="insertor">
-                <button on-click="_clickInsertWaypoint" title="Insert a new waypoint with the current location from the map at the beginning">&#10133;</button>
+                <button on-click="_clickInsertWaypoint" title="Insert a new waypoint with the current location from the map at the beginning">&#xF067;</button>
             </div>
             <template is="dom-repeat" items="[[ geo.waypoints ]]">
                 <div class$="waypoint [[ _classForWaypoint(item) ]]" title$="[[ _tooltip(item) ]]">
@@ -101,14 +103,14 @@
                     </div>
                     <div class="control">
                         <div class="left">
-                            <button on-click="_clickShowGeoTag" title="Show the location of this waypoint in the map">&#128065;</button>
-                            <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this waypoint">&#128205;</button>
-                            <button on-click="_clickUpdateTimezone" title="Lookup the timezone offset for this location">&#128336;</button>
-                            <button on-click="_clickEditWaypoint" title="Edit the waypoint" disabled>&#128393;</button>
+                            <button on-click="_clickShowGeoTag" title="Show the location of this waypoint in the map">&#xF279;</button>
+                            <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this waypoint">&#xF3C5;</button>
+                            <button on-click="_clickUpdateTimezone" title="Lookup the timezone offset for this location">&#xF017;</button>
+                            <button on-click="_clickEditWaypoint" title="Edit the waypoint" disabled>&#xF303;</button>
                         </div>
                         <div class="right">
-                            <button on-click="_clickInsertWaypoint" title="Insert a new waypoint with the current location from the map after this waypoint">&#10133;</button>
-                            <button class="clear" on-click="_clickRemoveWaypoint" title="Remove this waypoint from the list">&#10134;</button>
+                            <button on-click="_clickInsertWaypoint" title="Insert a new waypoint with the current location from the map after this waypoint">&#xF067;</button>
+                            <button class="clear" on-click="_clickRemoveWaypoint" title="Remove this waypoint from the list">&#xF068;</button>
                         </div>
                     </div>
                 </div>
@@ -352,12 +354,13 @@
                     let photo = event.detail;
                     let link = photo.uri.split( '/' );
                     link = link[link.length - 1];
-                    let dateTime = photo.dateOriginal + ' ' + photo.timeOriginal;
+                    let dateTime = ( photo.dateTimeOriginal || photo.dateTime );
                     let index = this.geo.waypoints.findIndex( w => w.link === link );
                     if( index < 0 || confirm( `A waypoint for '${link}' already exist.\n\nReplace the existing waypoint?` ) ) {
-                        this._getTimezoneForLocation( photo.latitude, photo.longitude, new Date( dateTime ) )
+                        this._getTimezoneForLocation( photo.latitude, photo.longitude, dateTime )
                         .then( ( timezone ) => {
                             let offset = this._getTimezoneOffset( timezone );
+                            console.log( offset );
                             dateTime = new Date( dateTime + ' ' + offset );
                             this.geo.addWaypoint( index, '', '', dateTime, timezone.timeZoneId, photo.latitude, photo.longitude, 0.0, link );
                             if( index > -1 ) {
