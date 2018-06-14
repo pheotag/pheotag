@@ -15,6 +15,8 @@
             }
             button {
                 cursor: pointer;
+                font-family: 'FA-5 Solid';
+                font-size: 1.25em;
             }
             .file {
                 flex: initial;
@@ -112,15 +114,15 @@
         </style>
         <div class="file">
             <input id="file" type="file" on-change="_changedImageFiles" accept=".jpg" multiple />
-            <button class="clear" on-click="_clickClear" title="Clear the list of photos">&#10008;</button>
-            <button class="save" on-click="_clickSave" title="Save the modified EXIF data to all photo files">&#129095;</button>
+            <button class="clear" on-click="_clickClear" title="Clear the list of photos">&#xF00D;</button>
+            <button class="save" on-click="_clickSave" title="Save the modified EXIF data to all photo files">&#xF0C7;</button>
         </div>
         <input id="filter" type="text" value="{{ filter::input }}"/>
         <div id="container">
             <template is="dom-repeat" items="[[ photos ]]">
                 <div class="photo" title$="[[ _tooltip(item) ]]">
                     <div class="date">
-                        [[ _date(item.dateOriginal, item.timeOriginal) ]]
+                        [[ _date(item.dateTimeOriginal,item.dateTime) ]]
                     </div>
                     <div class="thumbnail">
                         <img class$="orientation[[ item.orientation ]]" src$="[[ item.uri ]]" />
@@ -130,13 +132,14 @@
                     </div>
                     <div class="control">
                         <div class="left">
-                            <button on-click="_clickShowGeoTag" title="Show the location of this photo in the map">&#128065;</button>
-                            <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this photo">&#128205;</button>
-                            <button on-click="_clickAddToGPX" title="Add this photo to the list of waypoints">&#10133;</button>
+                            <button on-click="_clickShowGeoTag" title="Show the location of this photo in the map">&#xF279;</button>
+                            <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this photo">&#xF3C5;</button>
+                            <button on-click="_clickApplyDateTime" title="Assign the current date and time from the calendar to this photo">&#xF073;</button>
+                            <button on-click="_clickAddToGPX" title="Add this photo to the list of waypoints">&#xF055;</button>
                         </div>
                         <div class="right">
-                            <button on-click="_clickSaveEXIF" title="Save the modified EXIF data to this photo file">&#10004;</button>
-                            <button on-click="_clickReloadEXIF" title="Reload the original EXIF data from this photo file">&#128259;</button>
+                            <button on-click="_clickSaveEXIF" title="Save the modified EXIF data to this photo file">&#xF00C;</button>
+                            <button on-click="_clickReloadEXIF" title="Reload the original EXIF data from this photo file">&#xF2F9;</button>
                         </div>
                     </div>
                 </div>
@@ -174,6 +177,12 @@
                         value: Number.NaN,
                         notify: true, // enable upward data flow,
                         //readOnly: true, // prevent downward data flow
+                    },
+                    dateTime: {
+                        type: Object,
+                        value: new Date(),
+                        notify: true, // enable upward data flow,
+                        //readOnly: true, // prevent downward data flow
                     }
                 };
             }
@@ -193,7 +202,6 @@
                 try {
                     return value.toFixed( 5 );
                 } catch( e ) {
-                    //console.warn( e );
                     return Number.NaN;
                 }
             }
@@ -201,9 +209,8 @@
             /**
              *
              */
-            _date( date, time ) {
+            _date( dateTimeOriginal, dateTime ) {
                 try {
-                    let dateTime = new Date( `${date} ${time}` );
                     let options = {
                         weekday: 'short',
                         year: 'numeric',
@@ -213,7 +220,7 @@
                         minute: 'numeric',
                         second: 'numeric'
                     };
-                    return dateTime.toLocaleString( undefined, options );
+                    return ( dateTimeOriginal || dateTime ).toLocaleString( undefined, options );
                 } catch( e ) {
                     return 'UNKNOWN DATE & TIME';
                 }
@@ -223,14 +230,19 @@
              *
              */
             _tooltip( photo ) {
-                let tooltip = [];
-                tooltip.push( 'Date: ' + photo.date );
-                tooltip.push( 'Time: ' + photo.time );
-                tooltip.push( `Latitude: ${ this._round(photo.latitude) }°`);
-                tooltip.push( `Longitude: ${ this._round(photo.longitude) }°`);
-                tooltip.push( 'Altitude: ' + photo.altitude);
-                tooltip.push( 'File: ' + photo.uri );
-                return tooltip.join( '\n' );
+                try {
+                    let tooltip = [];
+                    let dateTime = ( photo.dateTimeOriginal || photo.dateTime );
+                    tooltip.push( 'Date: ' + ( dateTime ? dateTime.toLocaleDateString() : '' ) );
+                    tooltip.push( 'Time: ' + ( dateTime ? dateTime.toLocaleTimeString() : '' ) );
+                    tooltip.push( `Latitude: ${ this._round(photo.latitude) }°`);
+                    tooltip.push( `Longitude: ${ this._round(photo.longitude) }°`);
+                    tooltip.push( 'Altitude: ' + photo.altitude);
+                    tooltip.push( 'File: ' + photo.uri );
+                    return tooltip.join( '\n' );
+                } catch( e ) {
+                    //console.warn( e );
+                }
             }
 
             /**
@@ -286,6 +298,27 @@
             /**
              *
              */
+            _clickApplyGeoTag( event ) {
+                // TODO: find a better way for notification without relying on index
+                let index = event.model.index;
+                this.set( `photos.${index}.latitude`, this.latitude );
+                this.set( `photos.${index}.longitude`, this.longitude );
+            }
+
+            /**
+             *
+             */
+            _clickApplyDateTime( event ) {
+                // TODO: find a better way for notification without relying on index
+                let index = event.model.index;
+                this.dateTime = new Date();
+                this.set( `photos.${index}.dateTimeOriginal`, this.dateTime );
+                this.set( `photos.${index}.dateTime`, this.dateTime );
+            }
+
+            /**
+             *
+             */
             _clickAddToGPX( event ) {
                 try {
                     event = new CustomEvent( 'photo', {
@@ -300,26 +333,17 @@
             /**
              *
              */
-            _clickApplyGeoTag( event ) {
-                // TODO: find a better way for notification without relying on index
-                let index = event.model.index;
-                this.set( `photos.${index}.latitude`, this.latitude );
-                this.set( `photos.${index}.longitude`, this.longitude );
-            }
-
-            /**
-             *
-             */
             _clickReloadEXIF( event ) {
                 try {
                     let photo = event.model.item;
                     photo.loadEXIF();
                     // TODO: find a better way for notification without relying on index
                     let index = event.model.index;
-                    this.notifyPath( `photos.${index}.date` );
-                    this.notifyPath( `photos.${index}.time` );
+                    this.notifyPath( `photos.${index}.dateTime` );
+                    this.notifyPath( `photos.${index}.dateTimeOriginal` );
                     this.notifyPath( `photos.${index}.latitude` );
                     this.notifyPath( `photos.${index}.longitude` );
+                    this.notifyPath( `photos.${index}.altitude` );
                 } catch( e ) {
                     console.error( e );
                 }
