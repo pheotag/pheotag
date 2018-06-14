@@ -104,15 +104,8 @@ class PhotoReference {
      */
     get orientation() {
         try {
-            if( !this._imageEXIF ) {
-                throw new Error( 'EXIF data missing!' );
-            }
-            if( !this._imageEXIF['0th'] ) {
-                throw new Error( '0th data missing!' );
-            }
             return this._imageEXIF['0th'][piexif.ImageIFD.Orientation];
         } catch( e ) {
-            //console.warn( e );
             return undefined;
         }
     }
@@ -122,17 +115,9 @@ class PhotoReference {
      * @param {*} ifd 
      * @param {*} index 
      */
-    _date( ifd, index ) {
-        try {
-            if( !this._imageEXIF || !this._imageEXIF[ifd] ) {
-                return undefined;
-            }
-            let dateTime = this._imageEXIF[ifd][index].split( ' ' );
-            return ( dateTime ? dateTime[0].split( ':' ).join( '-' ) : undefined );
-        } catch( e ) {
-            //console.warn( e );
-            return undefined;
-        }
+    _exif2date( value) {
+        dateTime = value.replace( ':', '-' ).replace( ':', '-' ).replace( ' ', 'T' )
+        return new Date( dateTime );
     }
 
     /**
@@ -140,17 +125,9 @@ class PhotoReference {
      * @param {*} ifd 
      * @param {*} index 
      */
-    _time( ifd, index ) {
-        try {
-            if( !this._imageEXIF || !this._imageEXIF[ifd] ) {
-                return undefined;
-            }
-            let dateTime = this._imageEXIF[ifd][index].split( ' ' );
-            return ( dateTime ? dateTime[1] : undefined );
-        } catch( e ) {
-            //console.warn( e );
-            return undefined;
-        }
+    _date2exif( value ) {
+        let dateTime = value.toISOString().substring( 0, 19 );
+        return dateTime.replace( '-', ':' ).replace( '-', ':' ).replace( 'T', ' ' );
     }
 
     /**
@@ -164,7 +141,6 @@ class PhotoReference {
                 slashes: true
             } );
         } catch( e ) {
-            //console.warn( e );
             return undefined;
         }
     }
@@ -172,11 +148,10 @@ class PhotoReference {
     /**
      * 
      */
-    get date() {
+    get dateTime() {
         try {
-            return this._date( '0th', piexif.ImageIFD.DateTime );
+            return this._exif2date( this._imageEXIF['0th'][piexif.ImageIFD.DateTime] );
         } catch( e ) {
-            //console.warn( e );
             return undefined;
         }
     }
@@ -184,11 +159,21 @@ class PhotoReference {
     /**
      * 
      */
-    get time() {
+    set dateTime( value ) {
         try {
-            return this._time( '0th', piexif.ImageIFD.DateTime );
+            this._imageEXIF['0th'][piexif.ImageIFD.DateTime] = this._date2exif( exif );
         } catch( e ) {
-            //console.warn( e );
+            console.error( e );
+        }
+    }
+
+    /**
+     * 
+     */
+    get dateTimeOriginal() {
+        try {
+            return this._exif2date( this._imageEXIF['Exif'][piexif.ExifIFD.DateTimeOriginal] );
+        } catch( e ) {
             return undefined;
         }
     }
@@ -196,24 +181,11 @@ class PhotoReference {
     /**
      * 
      */
-    get dateOriginal() {
+    set dateTimeOriginal( value ) {
         try {
-            return this._date( 'Exif', piexif.ExifIFD.DateTimeOriginal );
+            this._imageEXIF['Exif'][piexif.ExifIFD.DateTimeOriginal] = this._date2exif( value );
         } catch( e ) {
-            //console.warn( e );
-            return undefined;
-        }
-    }
-
-    /**
-     * 
-     */
-    get timeOriginal() {
-        try {
-            return this._time( 'Exif', piexif.ExifIFD.DateTimeOriginal );
-        } catch( e ) {
-            //console.warn( e );
-            return undefined;
+            console.error( e );
         }
     }
 
@@ -223,12 +195,6 @@ class PhotoReference {
      */
     get latitude() {
         try {
-            if( !this._imageEXIF ) {
-                throw new Error( 'EXIF data missing!' );
-            }
-            if( !this._imageEXIF['GPS'] ) {
-                throw new Error( 'GPS data missing!' );
-            }
             let sign = ( this._imageEXIF['GPS'][piexif.GPSIFD.GPSLatitudeRef] === 'N' ? 1 : -1 );
             let sexagesimal = this._imageEXIF['GPS'][piexif.GPSIFD.GPSLatitude];
             return ( sign * this._sexagesimal2decimal( sexagesimal ) );
@@ -243,9 +209,6 @@ class PhotoReference {
      */
     set latitude( value ) {
         try {
-            if( !this._imageEXIF ) {
-                return;
-            }
             this._imageEXIF['GPS'][piexif.GPSIFD.GPSLatitudeRef] = ( value < 0 ? 'S' : 'N' );
             this._imageEXIF['GPS'][piexif.GPSIFD.GPSLatitude] = this._decimal2sexagesimal( value );
         } catch( e ) {
@@ -259,17 +222,10 @@ class PhotoReference {
      */
     get longitude() {
         try {
-            if( !this._imageEXIF ) {
-                throw new Error( 'EXIF data missing!' );
-            }
-            if( !this._imageEXIF['GPS'] ) {
-                throw new Error( 'GPS data missing!' );
-            }
             let sign = ( this._imageEXIF['GPS'][piexif.GPSIFD.GPSLongitudeRef] === 'E' ? 1 : -1 );
             let sexagesimal = this._imageEXIF['GPS'][piexif.GPSIFD.GPSLongitude];
             return ( sign * this._sexagesimal2decimal( sexagesimal ) );
         } catch( e ) {
-            //console.warn( e );
             return undefined;
         }
     }
@@ -279,9 +235,6 @@ class PhotoReference {
      */
     set longitude( value ) {
         try {
-            if( !this._imageEXIF ) {
-                return;
-            }
             this._imageEXIF['GPS'][piexif.GPSIFD.GPSLongitudeRef] = ( value < 0 ? 'W' : 'E' );
             this._imageEXIF['GPS'][piexif.GPSIFD.GPSLongitude] = this._decimal2sexagesimal( value );
         } catch( e ) {
@@ -295,17 +248,10 @@ class PhotoReference {
      */
     get altitude() {
         try {
-            if( !this._imageEXIF ) {
-                throw new Error( 'EXIF data missing!' );
-            }
-            if( !this._imageEXIF['GPS'] ) {
-                throw new Error( 'GPS data missing!' );
-            }
             let sign = ( this._imageEXIF['GPS'][piexif.GPSIFD.GPSAltitudeRef] === 0 ? 1 : -1 );
             let rational = this._imageEXIF['GPS'][piexif.GPSIFD.GPSAltitude];
             return ( sign * rational[0] / rational[1] );
         } catch( e ) {
-            //console.warn( e );
             return undefined;
         }
     }
@@ -315,14 +261,8 @@ class PhotoReference {
      */
     set altitude( value ) {
         try {
-            if( !this._imageEXIF ) {
-                return;
-            }
             this._imageEXIF['GPS'][piexif.GPSIFD.GPSAltitudeRef] = ( value < 0 ? 1 : 0 );
-            this._imageEXIF['GPS'][piexif.GPSIFD.GPSAltitude] = [
-                Math.round( value ),
-                1
-            ];
+            this._imageEXIF['GPS'][piexif.GPSIFD.GPSAltitude] = [ Math.round( value ), 1 ];
         } catch( e ) {
             console.error( e );
         }
