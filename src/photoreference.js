@@ -116,8 +116,8 @@ class PhotoReference {
      * @param {*} index 
      */
     _exif2date( value) {
-        dateTime = value.replace( ':', '-' ).replace( ':', '-' ).replace( ' ', 'T' )
-        return new Date( dateTime );
+        let dateTime = value.replace( ':', '-' ).replace( ':', '-' ).replace( ' ', 'T' );
+        return ( new Date( dateTime ) );
     }
 
     /**
