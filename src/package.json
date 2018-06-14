@@ -5,8 +5,8 @@
     "author": "Ronny Wegener <wegener.ronny@gmail.com>",
     "main": "main.js",
     "dependencies": {
-        "piexifjs": "^1.0.4",
-        "xml2js": "^0.4.19",
-        "xmldoc": "^1.1.0"
+        "piexifjs": "",
+        "xml2js": "",
+        "xmldoc": ""
     }
 }
