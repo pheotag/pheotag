@@ -1,0 +1,45 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="geotag-datetime">
+
+    <template>
+        <style>
+        </style>
+        <input id="datetime" type="datetime-local" step="1.0" value="{{ value::input }}">
+    </template>
+
+    <script>
+        /** @polymerElement */
+        class GeoTagDateTime extends Polymer.Element {
+            /**
+             *
+             */
+            static get is() {
+                return 'geotag-datetime';
+            }
+
+            /**
+             *
+             */
+            static get properties() {
+                return {
+                    value: {
+                        type: String,
+                        value: (new Date()).toISOString().substring( 0, 19 ),
+                        notify: true, // enable upward data flow,
+                        //readOnly: true, // prevent downward data flow
+                    }
+                };
+            }
+
+            /**
+             *
+             */
+            ready() {
+                super.ready();
+            }
+        }
+        window.customElements.define(GeoTagDateTime.is, GeoTagDateTime);
+    </script>
+
+</dom-module>

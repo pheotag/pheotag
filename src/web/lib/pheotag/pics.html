@@ -179,8 +179,8 @@
                         //readOnly: true, // prevent downward data flow
                     },
                     dateTime: {
-                        type: Object,
-                        value: new Date(),
+                        type: String,
+                        value: (new Date()).toISOString().substring( 0, 19 ),
                         notify: true, // enable upward data flow,
                         //readOnly: true, // prevent downward data flow
                     }
@@ -311,9 +311,9 @@
             _clickApplyDateTime( event ) {
                 // TODO: find a better way for notification without relying on index
                 let index = event.model.index;
-                this.dateTime = new Date();
-                this.set( `photos.${index}.dateTimeOriginal`, this.dateTime );
-                this.set( `photos.${index}.dateTime`, this.dateTime );
+                let dateTime = new Date( this.dateTime.substring( 0, 19 ) + 'Z' );
+                this.set( `photos.${index}.dateTimeOriginal`, dateTime );
+                this.set( `photos.${index}.dateTime`, dateTime );
             }
 
             /**
