@@ -13,6 +13,7 @@ class PhotoReference {
      * @param {*} file 
      */
     constructor( file ) {
+        this.MINUTES_TO_MILLISECONDS_FACTOR = 60000; // 60 * 1000
         this._imageFile = file;
         this._imageEXIF = undefined;
         this.loadEXIF();
@@ -115,18 +116,21 @@ class PhotoReference {
      * @param {*} ifd 
      * @param {*} index 
      */
-    _exif2date( value) {
+    _exif2date( value ) {
         let dateTime = value.replace( ':', '-' ).replace( ':', '-' ).replace( ' ', 'T' );
         return ( new Date( dateTime ) );
     }
 
     /**
-     * 
+     * Format the local date as exif compatible string.
+     * e.g. 2000-01-02T03:04:05 GMT+0200 => '2000:01:02 03:04:05'
      * @param {*} ifd 
      * @param {*} index 
      */
     _date2exif( value ) {
-        let dateTime = value.toISOString().substring( 0, 19 );
+        let valueTimezoneOffset = value.getTimezoneOffset() * this.MINUTES_TO_MILLISECONDS_FACTOR;
+        let dateTime = new Date( value.getTime() - valueTimezoneOffset );
+        dateTime = dateTime.toISOString().substring( 0, 19 );
         return dateTime.replace( '-', ':' ).replace( '-', ':' ).replace( 'T', ' ' );
     }
 

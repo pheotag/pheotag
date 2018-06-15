@@ -5,7 +5,7 @@
     <template>
         <style>
         </style>
-        <input id="datetime" type="datetime-local" step="1.0" value="{{ value::input }}">
+        <input id="datetime" type="datetime-local" step="1.0" on-change="_onTimestampChanged" value-as-number="{{ timestamp::input }}">
     </template>
 
     <script>
@@ -23,11 +23,12 @@
              */
             static get properties() {
                 return {
-                    value: {
-                        type: String,
-                        value: (new Date()).toISOString().substring( 0, 19 ),
+                    dateTime: {
+                        type: Object,
+                        value: new Date(),
                         notify: true, // enable upward data flow,
                         //readOnly: true, // prevent downward data flow
+                        observer: '_onDateTimeChanged'
                     }
                 };
             }
@@ -37,6 +38,27 @@
              */
             ready() {
                 super.ready();
+            }
+
+            /**
+             * Occurs when the property is set to a new date object.
+             * Convert the date object from the attribute into the timestamp for the UI input field.
+             */
+            _onDateTimeChanged( dateTime ) {
+                // for some reason the timestamp for the input needs to be adjusted by the timezone ...
+                let ts = dateTime.getTime() - dateTime.getTimezoneOffset() * 60000;
+                if( this.timestamp !== ts ) {
+                    this.timestamp = ts;
+                }
+            }
+
+            /**
+             * Occurs when a new date is set via the UI input field.
+             * Convert the string from the UI input field into a date object for the attribute.
+             */
+             _onTimestampChanged( event ) {
+                // for some reason the timestamp for the input needs to be adjusted by the timezone ...
+                this.dateTime = new Date( this.timestamp + ( new Date() ).getTimezoneOffset() * 60000 );
             }
         }
         window.customElements.define(GeoTagDateTime.is, GeoTagDateTime);
