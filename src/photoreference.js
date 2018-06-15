@@ -161,7 +161,7 @@ class PhotoReference {
      */
     set dateTime( value ) {
         try {
-            this._imageEXIF['0th'][piexif.ImageIFD.DateTime] = this._date2exif( exif );
+            this._imageEXIF['0th'][piexif.ImageIFD.DateTime] = this._date2exif( value );
         } catch( e ) {
             console.error( e );
         }
