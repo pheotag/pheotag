@@ -105,6 +105,7 @@
                         <div class="left">
                             <button on-click="_clickShowGeoTag" title="Show the location of this waypoint in the map">&#xF279;</button>
                             <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this waypoint">&#xF3C5;</button>
+                            <button on-click="_clickApplyDateTime" title="Assign the current date and time from the calendar to this photo">&#xF073;</button>
                             <button on-click="_clickUpdateTimezone" title="Lookup the timezone offset for this location">&#xF017;</button>
                             <button on-click="_clickEditWaypoint" title="Edit the waypoint" disabled>&#xF303;</button>
                         </div>
@@ -152,6 +153,12 @@
                         type: Number,
                         value: Number.NaN,
                         notify: true, // enable upward data flow,
+                        //readOnly: true, // prevent downward data flow
+                    },
+                    dateTime: {
+                        type: Object,
+                        value: new Date(),
+                        notify: false, // enable upward data flow,
                         //readOnly: true, // prevent downward data flow
                     },
                     waypoints: {
@@ -298,6 +305,15 @@
                 this.set( `geo.waypoints.${index}.latitude`, this.latitude );
                 this.set( `geo.waypoints.${index}.longitude`, this.longitude );
                 this._geoWaypointsChanged( this.geo.waypoints );
+            }
+
+            /**
+             *
+             */
+            _clickApplyDateTime( event ) {
+                // TODO: find a better way for notification without relying on index
+                let index = event.model.index;
+                this.set( `photos.${index}.dateTime`, this.dateTime );
             }
 
             /**
