@@ -5,7 +5,7 @@
     <template>
         <style>
         </style>
-        <input id="datetime" type="datetime-local" step="1.0" on-change="_onTimestampChanged" value-as-number="{{ timestamp::input }}">
+        <input id="datetime" type="datetime-local" step="1" on-change="_onTimestampChanged" value-as-number="{{ timestamp::input }}">
     </template>
 
     <script>
@@ -46,7 +46,7 @@
              */
             _onDateTimeChanged( dateTime ) {
                 // for some reason the timestamp for the input needs to be adjusted by the timezone ...
-                let ts = dateTime.getTime() - dateTime.getTimezoneOffset() * 60000;
+                let ts = 1000 * ( Math.round( dateTime.getTime() / 1000 ) - dateTime.getTimezoneOffset() * 60 );
                 if( this.timestamp !== ts ) {
                     this.timestamp = ts;
                 }
