@@ -1,0 +1,105 @@
+<script>
+
+    class GoogleAPI {
+
+        constructor( key ) {
+            this.key = ( key || GoogleAPI.key );
+        }
+
+        /**
+         *
+         */
+        static get key() {
+            return 'AIzaSyAI65pf3plY-90Ja59xMLFyPrIewKJ93eM';
+        }
+
+        static get baseURL() {
+            return new URL( 'https://maps.googleapis.com/maps/api/' );
+        }
+
+        /**
+         *
+         */
+        _apiRequest( uri ) {
+            try {
+                if( uri instanceof String ) {
+                    uri = new URL( uri );
+                }
+                if( !( uri instanceof URL ) ) {
+                    throw new Error( 'Google API unsupported URL data type for HTTP request!' );
+                }
+                if( !uri.searchParams.has( 'key' ) ) {
+                    uri.searchParams.append( 'key', this.key );
+                }
+                return fetch( uri.href )
+                .then( ( response ) => {
+                    if( !response.headers.get( 'Content-Type' ).startsWith( 'application/json' ) ) {
+                        throw new Error( 'Google API response is not in valid JSON format!' );
+                    }
+                    if( response.status !== 200 ) {
+                        throw new Error( 'Google API response status code: ' + response.status );
+                    }
+                    return response.json();
+                } )
+                .then( ( json ) => {
+                    if( json.status !== 'OK' ) {
+                        throw new Error( 'Google API status: ' + json.status );
+                    }
+                    return ( json['results'] || json );
+                } );
+            } catch( e ) {
+                return new Promise( ( resolve, reject ) => {
+                    reject( e );
+                } );
+            }
+        }
+
+        /**
+         * Determine the timezone for the given local date and time at the given coordinates.
+         * Returns a promise.
+         */
+        getTimezoneForLocation( latitude, longitude, dateTime ) {
+            try {
+                let uri = GoogleAPI.baseURL;
+                uri.pathname += 'timezone/json';
+                console.log( uri );
+                uri.searchParams.append( 'location', latitude + ',' + longitude );
+                uri.searchParams.append( 'timestamp', Math.floor( dateTime.getTime() / 1000 ) );
+                console.log( '_getTimezoneForLocation', uri.href );
+                return this._apiRequest( uri );
+            } catch( e ) {
+                return new Promise( ( resolve, reject ) => {
+                    reject( e );
+                } );
+            }
+        }
+
+        /**
+         * Determine the altitude for the the given coordinates.
+         * Returns a promise.
+         * Each location must be an array of length two containing latitude & longitude!
+         * 
+         * EXAMPLES:
+         * // Single location
+         * getElevationForLocations( [5.0, 5.0] ).then( x => console.log( x ) )
+         * // Multiple locations
+         * getElevationForLocations( [5.0, 5.0], [10.0, 10.0], [15.0, 15.0] ).then( x => console.log( x ) )
+         * // Multiple locations (variable)
+         * let locations = [ [5,5], [10,10], [15,15], [20,20] ]
+         * getElevationForLocations( ...locations ).then( x => console.log( x ) )
+         */
+        getElevationForLocations( ...locations ) {
+            try {
+                let uri = GoogleAPI.baseURL;
+                uri.pathname += 'elevation/json';
+                uri.searchParams.append( 'locations', locations.map( p => p[0] + ',' + p[1] ).join( '|' ) );
+                return this._apiRequest( uri );
+            } catch( e ) {
+                return new Promise( ( resolve, reject ) => {
+                    reject( e );
+                } );
+            }
+        }
+    }
+
+</script>
