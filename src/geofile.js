@@ -115,7 +115,7 @@ class GeoFile {
             let waypoint = new Waypoint( latitude, longitude );
             waypoint.title = title;
             waypoint.description = description;
-            waypoint.time = time;
+            waypoint.time = ( time instanceof Date ? time.toISOString() : time );
             waypoint.timezone = timezone;
             waypoint.elevation = elevation;
             waypoint.link = link;
