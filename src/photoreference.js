@@ -13,7 +13,6 @@ class PhotoReference {
      * @param {*} file 
      */
     constructor( file ) {
-        this.MINUTES_TO_MILLISECONDS_FACTOR = 60000; // 60 * 1000
         this._imageFile = file;
         this._imageEXIF = undefined;
         this.loadEXIF();
