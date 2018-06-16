@@ -1,5 +1,7 @@
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="./google-api.html">
+<link rel="import" href="./free-api.html">
 
 <dom-module id="geotag-gpx">
 
@@ -105,7 +107,7 @@
                         <div class="left">
                             <button on-click="_clickShowGeoTag" title="Show the location of this waypoint in the map">&#xF279;</button>
                             <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this waypoint">&#xF3C5;</button>
-                            <button on-click="_clickApplyDateTime" title="Assign the current date and time from the calendar to this photo">&#xF073;</button>
+                            <button on-click="_clickApplyDateTime" title="Assign the current date and time from the calendar to this photo" disabled>&#xF073;</button>
                             <button on-click="_clickUpdateTimezone" title="Lookup the timezone offset for this location">&#xF017;</button>
                             <button on-click="_clickEditWaypoint" title="Edit the waypoint" disabled>&#xF303;</button>
                         </div>
@@ -185,6 +187,7 @@
             ready() {
                 super.ready();
                 this.geo = new GeoFile();
+                this.api = new GoogleAPI(); // new FreeAPI();
                 this.notifyPath( 'geo.waypoints' );
             }
 
@@ -202,7 +205,7 @@
             /**
              *
              */
-            _date( dateTime, timezone ) {
+            _date( isotime, timezone ) {
                 try {
                     let options = {
                         weekday: 'short',
@@ -215,7 +218,7 @@
                         timeZone: ( timezone ? timezone : 'UTC' ),
                         timeZoneName: 'short'
                     };
-                    return dateTime.toLocaleString( undefined, options );
+                    return ( new Date( isotime ) ).toLocaleString( undefined, options );
                 } catch( e ) {
                     return 'UNKNOWN DATE & TIME';
                 }
@@ -228,10 +231,10 @@
                 let tooltip = [];
                 tooltip.push( 'Title: ' + waypoint.title );
                 tooltip.push( 'Description: ' + waypoint.description );
-                tooltip.push( 'Time (ISO): ' + ( waypoint.time ? waypoint.time.toISOString() : 'UNKNOWN DATE & TIME' ) );
-                tooltip.push( `Coordinates: ${ this._round(waypoint.latitude) }°, ${ this._round(waypoint.longitude) }°`);
-                tooltip.push( 'Altitude: ' + waypoint.altitude);
-                tooltip.push( 'Link: ' + waypoint.link );
+                tooltip.push( 'Time (ISO): ' + ( waypoint.time ? waypoint.time : 'UNKNOWN DATE & TIME' ) );
+                tooltip.push( `Coordinates: ${ this._round(waypoint.latitude) }°, ${ this._round(waypoint.longitude) }°` );
+                tooltip.push( 'Elevation: ' + waypoint.elevation);
+                tooltip.push( 'Link: ' + waypoint.link ); 
                 return tooltip.join( '\n' );
             }
 
@@ -305,6 +308,18 @@
                 this.set( `geo.waypoints.${index}.latitude`, this.latitude );
                 this.set( `geo.waypoints.${index}.longitude`, this.longitude );
                 this._geoWaypointsChanged( this.geo.waypoints );
+                /*
+                this.api.getElevationForLocations( [this.latitude, this.longitude] )
+                .then( results => {
+                    this.set( `geo.waypoints.${index}.eleveation`, results[0].elevation );
+                    this._geoWaypointsChanged( this.geo.waypoints );
+                } )
+                .catch( e => {
+                    console.warn( e );
+                    this._geoWaypointsChanged( this.geo.waypoints );
+                } );
+                // TODO: use finally (available with chrome 63) to call _geoWaypointsChanged()
+                */
             }
 
             /**
@@ -313,7 +328,9 @@
             _clickApplyDateTime( event ) {
                 // TODO: find a better way for notification without relying on index
                 let index = event.model.index;
-                this.set( `photos.${index}.dateTime`, this.dateTime );
+                // respect the current timezone of the waypoint
+                // create iso string and assign to waypoint ...
+                //this.set( `geo.waypoints.${index}.time`, ???.toISOString() );
             }
 
             /**
@@ -323,9 +340,10 @@
                 try {
                     let index = event.model.index;
                     let waypoint = event.model.item;
-                    this._getTimezoneForLocation( waypoint.latitude, waypoint.longitude, waypoint.time )
+                    // TODO: change the timezone without updating time (keep the time for the new timezone)?
+                    this.api.getTimezoneForLocation( waypoint.latitude, waypoint.longitude, new Date( waypoint.time ) )
                     .then( ( timezone ) => {
-                        this.set( `geo.waypoints.${index}.timezone`, timezone.timeZoneId );
+                        this.set( `geo.waypoints.${index}.timezone`, timezone.timezone );
                         this._geoWaypointsChanged( this.geo.waypoints );
                     } )
                     .catch( ( e ) => {
@@ -355,6 +373,7 @@
             _clickInsertWaypoint( event ) {
                 try {
                     let index = ( event.model ? event.model.index : -1 );
+                    // TODO: interpolate time
                     this.geo.addWaypoint( index, undefined, undefined, undefined, undefined, this.latitude, this.longitude, undefined, undefined );
                     this.notifyPath( 'geo.waypoints' );
                 } catch( e ) {
@@ -370,15 +389,15 @@
                     let photo = event.detail;
                     let link = photo.uri.split( '/' );
                     link = link[link.length - 1];
-                    let dateTime = ( photo.dateTimeOriginal || photo.dateTime );
+                    let dateTime = new Date( photo.dateTimeOriginal || photo.dateTime || Date.now() );
+                    // dateTime was created as local date => remove the local timezone offset to use as ISO date
+                    dateTime.setTime( dateTime.getTime() - dateTime.getTimezoneOffset() * 60000 );
                     let index = this.geo.waypoints.findIndex( w => w.link === link );
                     if( index < 0 || confirm( `A waypoint for '${link}' already exist.\n\nReplace the existing waypoint?` ) ) {
-                        this._getTimezoneForLocation( photo.latitude, photo.longitude, dateTime )
+                        this.api.getTimezoneForLocation( photo.latitude, photo.longitude, dateTime )
                         .then( ( timezone ) => {
-                            let offset = this._getTimezoneOffset( timezone );
-                            console.log( offset );
-                            dateTime = new Date( dateTime + ' ' + offset );
-                            this.geo.addWaypoint( index, '', '', dateTime, timezone.timeZoneId, photo.latitude, photo.longitude, 0.0, link );
+                            dateTime.setTime( dateTime.getTime() - timezone.offset * 1000 );
+                            this.geo.addWaypoint( index, '', '', dateTime, timezone.timezone, photo.latitude, photo.longitude, 0.0, link );
                             if( index > -1 ) {
                                 this.geo.removeWaypoint( index );
                             }
@@ -394,59 +413,10 @@
             }
 
             /**
-             * Determine the timezone for the given local date and time at the given coordinates.
-             * Returns a promise.
-             */
-            _getTimezoneForLocation( latitude, longitude, dateTime ) {
-                try {
-                    let key = 'AIzaSyAI65pf3plY-90Ja59xMLFyPrIewKJ93eM';
-                    let ts = Math.floor( dateTime.getTime() / 1000 );
-                    let uri = `https://maps.googleapis.com/maps/api/timezone/json?location=${latitude},${longitude}&timestamp=${ts}&key=${key}`;
-                    return fetch( uri )
-                    .then( ( response ) => {
-                        if( !response.headers.get( 'Content-Type' ).startsWith( 'application/json' ) ) {
-                            throw new Error( 'Response is not in JSON format!' );
-                        }
-                        if( response.status !== 200 ) {
-                            throw new Error( 'Status code: ' + response.status );
-                        }
-                        return response.json();
-                    } )
-                    .then( ( json ) => {
-                        if( json.status !== 'OK' ) {
-                            throw new Error( json.status );
-                        }
-                        return json;
-                    } );
-                } catch( e ) {
-                    return new Promise( ( resolve, reject ) => {
-                        reject( e );
-                    } );
-                }
-            }
-
-            /**
-             * Get the signed 4 digit UTC offset for the given timezone (±HHMM)
-             */
-            _getTimezoneOffset( timezone ) {
-                try {
-                    let offset = timezone.rawOffset + timezone.dstOffset;
-                    let sign = ( offset > 0 ? '+' : '-' );
-                    let hours = Math.floor( offset / 3600 );
-                    let minutes = Math.floor( ( offset - ( 3600 * hours ) ) / 60 );
-                    hours = ( '0' + hours ).slice( -2 );
-                    minutes = ( '0' + minutes ).slice( -2 );
-                    return sign + hours + minutes;
-                } catch ( e ) {
-                    throw e;
-                }
-            }
-
-            /**
              *
              */
             _geoWaypointsChanged( waypoints ) {
-                this.set( 'waypoints', waypoints.sort( w => ( w.dateTime ? w.dateTime.getTime() : -1 ) ) );
+                this.set( 'waypoints', waypoints.sort( w => ( w.time ? w.time : -1 ) ) );
             }
         }
         window.customElements.define(GeoTagGpx.is, GeoTagGpx);
