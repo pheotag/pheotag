@@ -5,12 +5,13 @@
     <template>
         <style>
         </style>
-        <input id="datetime" type="datetime-local" step="1" on-change="_onTimestampChanged" value-as-number="{{ timestamp::input }}">
+        <input id="datetime" type="datetime-local" step="1" value="{{ dateTime::input }}">
     </template>
 
     <script>
         /** @polymerElement */
         class GeoTagDateTime extends Polymer.Element {
+            
             /**
              *
              */
@@ -22,13 +23,14 @@
              *
              */
             static get properties() {
+                let today = new Date();
+                today.setTime( today.getTime() - today.getTimezoneOffset() * 60000 );
                 return {
                     dateTime: {
-                        type: Object,
-                        value: new Date(),
+                        type: String,
+                        value: today.toISOString().substring( 0, 19 ),
                         notify: true, // enable upward data flow,
                         //readOnly: true, // prevent downward data flow
-                        observer: '_onDateTimeChanged'
                     }
                 };
             }
@@ -38,27 +40,6 @@
              */
             ready() {
                 super.ready();
-            }
-
-            /**
-             * Occurs when the property is set to a new date object.
-             * Convert the date object from the attribute into the timestamp for the UI input field.
-             */
-            _onDateTimeChanged( dateTime ) {
-                // for some reason the timestamp for the input needs to be adjusted by the timezone ...
-                let ts = 1000 * ( Math.floor( dateTime.getTime() / 1000 ) - dateTime.getTimezoneOffset() * 60 );
-                if( this.timestamp !== ts ) {
-                    this.timestamp = ts;
-                }
-            }
-
-            /**
-             * Occurs when a new date is set via the UI input field.
-             * Convert the string from the UI input field into a date object for the attribute.
-             */
-             _onTimestampChanged( event ) {
-                // for some reason the timestamp for the input needs to be adjusted by the timezone ...
-                this.dateTime = new Date( this.timestamp + ( new Date() ).getTimezoneOffset() * 60000 );
             }
         }
         window.customElements.define(GeoTagDateTime.is, GeoTagDateTime);
