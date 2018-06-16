@@ -40,12 +40,6 @@
                         throw new Error( 'Google API response status code: ' + response.status );
                     }
                     return response.json();
-                } )
-                .then( ( json ) => {
-                    if( json.status !== 'OK' ) {
-                        throw new Error( 'Google API status: ' + json.status );
-                    }
-                    return ( json['results'] || json );
                 } );
             } catch( e ) {
                 return new Promise( ( resolve, reject ) => {
@@ -62,11 +56,18 @@
             try {
                 let uri = GoogleAPI.baseURL;
                 uri.pathname += 'timezone/json';
-                console.log( uri );
                 uri.searchParams.append( 'location', latitude + ',' + longitude );
                 uri.searchParams.append( 'timestamp', Math.floor( dateTime.getTime() / 1000 ) );
-                console.log( '_getTimezoneForLocation', uri.href );
-                return this._apiRequest( uri );
+                return this._apiRequest( uri )
+                .then( ( json ) => {
+                    if( json.status !== 'OK' ) {
+                        throw new Error( 'Google API status: ' + json.status );
+                    }
+                    return {
+                        timezone: json.timeZoneId,
+                        offset: json.rawOffset + json.dstOffset
+                    };
+                } );
             } catch( e ) {
                 return new Promise( ( resolve, reject ) => {
                     reject( e );
@@ -93,7 +94,17 @@
                 let uri = GoogleAPI.baseURL;
                 uri.pathname += 'elevation/json';
                 uri.searchParams.append( 'locations', locations.map( p => p[0] + ',' + p[1] ).join( '|' ) );
-                return this._apiRequest( uri );
+                return this._apiRequest( uri )
+                .then( ( json ) => {
+                    if( json.status !== 'OK' ) {
+                        throw new Error( 'Google API status: ' + json.status );
+                    }
+                    return json['results'].map( p => ( {
+                        elevation: p.elevation,
+                        latitude: p.location.lat,
+                        longitude: p.location.lng 
+                    } ) );
+                } );
             } catch( e ) {
                 return new Promise( ( resolve, reject ) => {
                     reject( e );
