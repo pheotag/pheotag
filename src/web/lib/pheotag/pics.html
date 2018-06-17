@@ -280,7 +280,13 @@
              */
             _clickSave( event ) {
                 try {
-                    console.log( event );
+                    this.photos.forEach( p => {
+                        try {
+                            p.saveEXIF();
+                        } catch( e ) {
+                            console.error( e );
+                        }
+                    } );
                 } catch( e ) {
                     console.warn( e );
                 }
