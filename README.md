@@ -91,33 +91,44 @@ Photo GeoTag is build with the electron application framework.
 - Install NPM package *asar* (globally)
   `npm install -g asar`
 - Clone the project repository from github
-  `git clone 'https://github.com/ronny1982/pheotag.git pheotag'`
-- Open a terminal and navigate to the `src` subdirectory of the project
+  `git clone 'https://github.com/ronny1982/pheotag.git' ./pheotag`
+- Open a terminal and navigate to the `src` sub-directory of the project
 - Install all required NPM modules
   `npm install`
 
 ### Run
 
-- Open a terminal and navigate to the `src` subdirectory of the project
+- Open a terminal and navigate to the `src` sub-directory of the project
 - Run the application with electron
   `electron .`
 
 ### Build
 
-1. Make sure the required packaging tools are installed (dpkg, rpm)
-2. Open a terminal and navigate to the root directory of the project
-3. Create 32/64 bit and deb/rpm packages by running the following script:
-   `sudo ./build-linux.sh`
-4. The packages will be created in the `build` sub-directory of the project
+...
 
 #### MacOSX
 
-...
+1. Download the electron zip archive *electron-VER-darwin-x64.zip* from [github](https://github.com/electron/electron/releases) into the `redist` sub-directory of the project
+2. Open a terminal and navigate to the root directory of the project
+3. Create 32/64 bit and deb/rpm packages by running the following script:
+   `sudo ./build-darwin.sh`
+4. The package will be created in the `build` sub-directory of the project
 
 #### Linux
 
-...
+1. Make sure the required packaging tools are installed (dpkg, rpm)
+2. Download the electron zip archives *electron-VER-linux-ia32.zip* and *electron-VER-linux-x64.zip* from [github](https://github.com/electron/electron/releases) into the `redist` sub-directory of the project
+3. Open a terminal and navigate to the root directory of the project
+4. Create 32/64 bit and deb/rpm packages by running the following script:
+   `sudo ./build-linux.sh`
+5. The packages will be created in the `build` sub-directory of the project
 
 #### Windows
 
-...
+1. Make sure you have MSYS2 (or any another UNIX toolset for windows)
+2. Make sure InnoSetup is installed and added to your path environment variabe in MSYS2
+3. Download the electron zip archives *electron-VER-win32-ia32.zip* and *electron-VER-win32-x64.zip* from [github](https://github.com/electron/electron/releases) into the `redist` sub-directory of the project
+4. Open MSYS2 and navigate to the root directory of the project
+5. Create 32/64 bit and setup/portable installers by running the following script:
+   `sudo ./build-windows.sh`
+6. The installers will be created in the `build` sub-directory of the project

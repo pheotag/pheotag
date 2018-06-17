@@ -15,7 +15,7 @@ BIN_LINUX="pheotag"
 function build {
     rm -r -f "build/$2"
     mkdir -p "build/$2"
-    unzip "redist/electron-v2.*-$1.zip" -d "build/$2"
+    unzip "redist/electron-v*.*-$1.zip" -d "build/$2"
     rm -f "build/$2/version"
     rm -f "build/$2/LICENSE"*
     if [[ $2 =~ linux.* ]]
@@ -34,10 +34,10 @@ function build {
         then
             pwd
             echo "Portable Mode: TRUE"
-            sed 's/^var portable =.*$/var portable = true;/g' -i "src/config.js"
+            #sed 's/^var portable =.*$/var portable = true;/g' -i "src/config.js"
         else
             echo "Portable Mode: FALSE"
-            sed 's/^var portable =.*$/var portable = false;/g' -i "src/config.js"
+            #sed 's/^var portable =.*$/var portable = false;/g' -i "src/config.js"
         fi
         asar pack "src" "build/$2/resources/app.asar"
         # or without asar: cp -r "src" "build/$2/resources/app"

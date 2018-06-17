@@ -67,13 +67,13 @@ function setup {
   rm -f "$ISS"
 }
 
-build "win32-x64" "$DIR_64_PORTABLE" true
-rcedit "$DIR_64_PORTABLE"
-compress "$DIR_64_PORTABLE"
+#build "win32-x64" "$DIR_64_PORTABLE" true
+#rcedit "$DIR_64_PORTABLE"
+#compress "$DIR_64_PORTABLE"
 
-build "win32-ia32" "$DIR_32_PORTABLE" true
-rcedit "$DIR_32_PORTABLE"
-compress "$DIR_32_PORTABLE"
+#build "win32-ia32" "$DIR_32_PORTABLE" true
+#rcedit "$DIR_32_PORTABLE"
+#compress "$DIR_32_PORTABLE"
 
 build "win32-x64" "$DIR_64" false
 rcedit "$DIR_64"
