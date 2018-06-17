@@ -2,12 +2,12 @@
 
 PUBLISHER="Ronny Wegener <wegener.ronny@gmail.com>"
 PACKAGE="pheotag"
-PRODUCT="pheotag"
-VERSION="0.1.0"
+PRODUCT="Photo GeoTag"
+VERSION="0.0.1"
 DESCRIPTION_SHORT="Photo Geo Tagger"
 DESCRIPTION_LONG="Simple application for graphical geo tagging of multiple photos."
 YEAR="$(date +%Y)"
-URL="http://sourceforge.net/projects/pheotag"
+URL="https://git.io/vhMEN"
 BIN_WINDOWS="pheotag.exe"
 BIN_DARWIN="pheotag"
 BIN_LINUX="pheotag"
@@ -15,7 +15,7 @@ BIN_LINUX="pheotag"
 function build {
     rm -r -f "build/$2"
     mkdir -p "build/$2"
-    unzip "redist/electron-v1.*-$1.zip" -d "build/$2"
+    unzip "redist/electron-v2.*-$1.zip" -d "build/$2"
     rm -f "build/$2/version"
     rm -f "build/$2/LICENSE"*
     if [[ $2 =~ linux.* ]]

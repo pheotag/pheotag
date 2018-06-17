@@ -88,6 +88,8 @@ Photo GeoTag is build with the electron application framework.
   `npm install -g electron`
 - Install NPM package *polymer-cli* (globally)
   `npm install -g polymer-cli`
+- Install NPM package *asar* (globally)
+  `npm install -g asar`
 - Clone the project repository from github
   `git clone 'https://github.com/ronny1982/pheotag.git pheotag'`
 - Open a terminal and navigate to the `src` subdirectory of the project
@@ -102,7 +104,11 @@ Photo GeoTag is build with the electron application framework.
 
 ### Build
 
-...
+1. Make sure the required packaging tools are installed (dpkg, rpm)
+2. Open a terminal and navigate to the root directory of the project
+3. Create 32/64 bit and deb/rpm packages by running the following script:
+   `sudo ./build-linux.sh`
+4. The packages will be created in the `build` sub-directory of the project
 
 #### MacOSX
 
