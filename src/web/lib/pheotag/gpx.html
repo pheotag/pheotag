@@ -260,9 +260,12 @@
              */
             _changedGeoFile( event ) {
                 try {
-                    this.geo.importGEO( 'test.gpx' );
-                    this.notifyPath( 'geo.waypoints' );
-                    console.log( 'TODO: clear file input ...' );
+                    this.geo.importGEO( this.$.file.files[0].path )
+                    .then( () => {
+                        this.notifyPath( 'geo.waypoints' );
+                        //console.log( 'TODO: clear file input ...' );
+                    } )
+                    .catch( e => console.error( e ) );
                 } catch( e ) {
                     throw e;
                 }

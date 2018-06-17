@@ -1,5 +1,6 @@
 /**
- * 
+ * Data holder class for a waypoint.
+ * See: http://www.topografix.com/GPX/1/1/#type_wptType
  */
 class Waypoint {
 

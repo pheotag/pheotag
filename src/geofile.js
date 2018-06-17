@@ -1,7 +1,7 @@
 const fs = require( 'fs' );
 const url = require( 'url' );
 const path = require( 'path' );
-const piexif = require( 'xml2js' );
+const xml2js = require( 'xml2js' );
 const Waypoint = require( './waypoint' );
 
 /**
@@ -19,16 +19,37 @@ class GeoFile {
     /**
      * 
      */
+    _flatten( array, property ) {
+        return array.reduce( ( accumulator, current ) => {
+            return accumulator.concat( current[property] );
+        }, [] );
+    }
+    
+    /**
+     * 
+     */
+    _createWaypoint( p ) {
+        return {
+            latitude: parseFloat( p.$.lat ),
+            longitude: parseFloat( p.$.lon ),
+            elevation: ( p.ele ? parseFloat( p.ele[0] ) : undefined ),
+            time: ( p.time ? p.time[0] : undefined ),
+            name: ( p.name ? p.name[0] : undefined ),
+            description: ( p.desc ? p.desc[0] : undefined ),
+            link: ( p.link ? p.link[0].$.href : undefined )
+        }
+    }
+
+    /**
+     * 
+     */
     importGEO( file ) {
         try {
-            console.log( 'TODO: import file ...', file );
             if( file.toLowerCase().endsWith( '.gpx' ) ) {
-                this._importGPX( file );
-                return;
+                return this._importGPX( file );
             }
             if( file.toLowerCase().endsWith( '.kml' ) ) {
-                this._importGPX( file );
-                return;
+                return this._importGPX( file );
             }
             throw new Error( 'Unsupported file format!' );
         } catch( e ) {
@@ -41,26 +62,52 @@ class GeoFile {
      * 
      */
     _importGPX( gpx ) {
-        try {
-            console.log( 'TODO: import GPX ...', gpx );
-            this.waypoints = [
-                new Waypoint( 70.0, 70.0 ),
-                new Waypoint( 71.0, 71.0 )
-            ];
-        } catch( e ) {
-            console.error( e );
-        }
+        return new Promise( ( resolve, reject ) => {
+            fs.readFile( gpx, ( errorFile, data ) => {
+                try {
+                    if( errorFile ) {
+                        throw errorFile;
+                    }
+                    let parser = new xml2js.Parser()
+                    parser.parseString( data, ( errorXML, result ) => {
+                        try {
+                            if( errorXML ) {
+                                throw errorXML;
+                            }
+                            // Get waypoints from GPX
+                            //let waypoints = result.gpx.wpt.map( this._createWaypoint );
+        
+                            // Get routepoints from GPX (all routes)
+                            //let routes = result.gpx.rte; 
+                            //let routepoints = this._flatten( routes, 'rtept' ).map( this._createWaypoint );
+                    
+                            // Get trackpoints from GPX (all tracks with all segments)
+                            let tracks = result.gpx.trk; // [ result.gpx.trk[0] ]
+                            let segments = this._flatten( tracks, 'trkseg' );   
+                            let trackpoints = this._flatten( segments, 'trkpt' ).map( this._createWaypoint );
+        
+                            // Assign points from GPX
+                            this.waypoints = trackpoints;
+                            resolve();
+                        } catch( e ) {
+                            reject( e );
+                        }
+                    } );
+                } catch( e ) {
+                    reject( e );
+                }
+            } );
+        } );
     }
 
     /**
      * 
      */
     _importKML( kml ) {
-        try {
-            console.log( 'TODO: import KML ...', kml );
-        } catch( e ) {
-            console.error( e );
-        }
+        return new Promise( ( resolve, reject ) => {
+            //reject( new Error( 'KML import not yet supported!' ) );
+            throw new Error( 'KML import not yet supported!' );
+        } );
     }
 
     /**
@@ -68,42 +115,41 @@ class GeoFile {
      */
     exportGEO( file ) {
         try {
-            console.log( 'TODO: export file ...', file );
+            /*
             if( file.toLowerCase().endsWith( '.gpx' ) ) {
                 this._importGPX( file );
                 return;
             }
+            */
             if( file.toLowerCase().endsWith( '.kml' ) ) {
-                this._importGPX( file );
-                return;
+                return this._importGPX( file );
             }
             throw new Error( 'Unsupported file format!' );
         } catch( e ) {
-            console.error( e );
-            throw e;
+            return new Promise( ( resolve, reject ) => {
+                reject( e );
+            } );
         }
     }
 
     /**
      * 
      */
+    /*
     _exportGPX( gpx ) {
-        try {
-            console.log( 'TODO: export GPX ...', gpx );
-        } catch( e ) {
-            console.error( e );
-        }
+        return new Promise( ( resolve, reject ) => {
+            reject( 'GPX export not supported!' );
+        } );
     }
+    */
 
     /**
      * 
      */
     _exportKML( kml ) {
-        try {
-            console.log( 'TODO: export KML ...', kml );
-        } catch( e ) {
-            console.error( e );
-        }
+        return new Promise( ( resolve, reject ) => {
+            reject( new Error( 'KML export not yet supported!' ) );
+        } );
     }
 
     /**
