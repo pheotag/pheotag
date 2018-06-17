@@ -49,7 +49,7 @@ class GeoFile {
                 return this._importGPX( file );
             }
             if( file.toLowerCase().endsWith( '.kml' ) ) {
-                return this._importGPX( file );
+                return this._importKML( file );
             }
             throw new Error( 'Unsupported file format!' );
         } catch( e ) {
