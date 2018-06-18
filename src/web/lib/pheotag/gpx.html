@@ -40,6 +40,9 @@
             .clear {
                 color: red;
             }
+            .sort {
+                float: right;
+            }
             .export {
                 float: right;
                 color: royalblue;
@@ -96,6 +99,9 @@
             <input id="file" type="file" on-change="_changedGeoFile" accept=".gpx,.kml" />
             <button class="clear" on-click="_clickClear" title="Clear the list of waypoints">&#xF00D;</button>
             <button class="export" on-click="_clickExport" title="Export the list of waypoints">&#xF019;</button>
+            <!--
+            <button class="sort" on-click="_sortWaypoints" title="Sort the list of waypoints by time">&#xF162;</button>
+            -->
         </div>
         <input id="filter" type="text" value="{{ filter::input }}"/>
         <div id="container">
@@ -390,12 +396,53 @@
             /**
              *
              */
+            _distance( latitude, longitude, waypoint ) {
+                // TODO: find a more accurate solution than this cheap one
+                let lat = Math.abs( ( waypoint.latitude + 90 ) - ( latitude + 90 ) );
+                let lng = Math.abs( ( waypoint.longitude + 180 ) - ( longitude + 180 ) );
+                lng = ( lng > 180 ? 360 - lng : lng );
+                return ( lat + lng );
+            }
+
+            /**
+             *
+             */
+            _insertWaypoint( index, dateTime, latitude, longitude, link ) {
+                this.api.getTimezoneOffsetEstimationForLocation( latitude, longitude )
+                .then( timezone => {
+                    let timestamp = dateTime.getTime() - dateTime.getTimezoneOffset() * 60000 - timezone.offset * 1000;
+                    return this.api.getTimezoneForLocation( latitude, longitude, new Date( timestamp ) );
+                } )
+                .then( timezone => {
+                    dateTime.setTime( dateTime.getTime() - dateTime.getTimezoneOffset() * 60000 - timezone.offset * 1000 );
+                    this.geo.addWaypoint( index, '', '', dateTime, timezone.timezone, latitude, longitude, 0.0, link );
+                    this.notifyPath( 'geo.waypoints' );
+                } )
+                .catch( e => { throw e; } );
+            }
+
+            /**
+             *
+             */
             _clickInsertWaypoint( event ) {
                 try {
                     let index = ( event.model ? event.model.index : -1 );
-                    // TODO: interpolate time / or assign date/time from date/time panel with correct timezone offset
-                    this.geo.addWaypoint( index, undefined, undefined, undefined, undefined, this.latitude, this.longitude, undefined, undefined );
-                    this.notifyPath( 'geo.waypoints' );
+                    let predecessor = ( index > -1 && index < this.geo.waypoints.length ? this.geo.waypoints[index] : undefined );
+                    let successor = ( index > -2 && index < this.geo.waypoints.length - 1 ? this.geo.waypoints[index+1] : undefined );
+                    let timestamp = 0;
+                    if( predecessor && successor ) {
+                        let dP = this._distance( this.latitude, this.longitude, predecessor );
+                        let dS = this._distance( this.latitude, this.longitude, successor );
+                        let tP = ( new Date( predecessor.time ) ).getTime();
+                        let tS = ( new Date( successor.time ) ).getTime();
+                        let distspan = dP + dS;
+                        let timespan = tS - tP;
+                        timestamp = tP;
+                        if( distspan !== 0 ) {
+                            timestamp += Math.round( timespan * dP / distspan );
+                        }
+                    }
+                    this._insertWaypoint( index, new Date( timestamp ), this.latitude, this.longitude, '' );
                 } catch( e ) {
                     throw e;
                 }
@@ -410,22 +457,10 @@
                     let link = photo.uri.split( '/' );
                     link = link[link.length - 1];
                     let index = this.geo.waypoints.findIndex( w => w.link === link );
-                    if( index < 0 || confirm( `A waypoint for '${link}' already exist.\n\nReplace the existing waypoint?` ) ) {
+                    if( index < 0 || confirm( `A waypoint for '${link}' already exist.\n\nInsert duplicate anyway?` ) ) {
+                        // TODO: find index for correct time to insert ...
                         let dateTime = new Date( photo.dateTimeOriginal || photo.dateTime || Date.now() );
-                        this.api.getTimezoneOffsetEstimationForLocation( photo.latitude, photo.longitude )
-                        .then( timezone => {
-                            let timestamp = dateTime.getTime() - dateTime.getTimezoneOffset() * 60000 - timezone.offset * 1000;
-                            return this.api.getTimezoneForLocation( photo.latitude, photo.longitude, new Date( timestamp ) );
-                        } )
-                        .then( timezone => {
-                            dateTime.setTime( dateTime.getTime() - dateTime.getTimezoneOffset() * 60000 - timezone.offset * 1000 );
-                            this.geo.addWaypoint( index, '', '', dateTime, timezone.timezone, photo.latitude, photo.longitude, 0.0, link );
-                            if( index > -1 ) {
-                                this.geo.removeWaypoint( index );
-                            }
-                            this.notifyPath( 'geo.waypoints' );
-                        } )
-                        .catch( e => { throw e; } );
+                        this._insertWaypoint( index, dateTime, photo.latitude, photo.longitude, link );
                     }
                 } catch( e ) {
                     throw e;
@@ -436,7 +471,11 @@
              *
              */
             _geoWaypointsChanged( waypoints ) {
-                this.set( 'waypoints', waypoints.sort( w => ( w.time ? w.time : -1 ) ) );
+                /*
+                this.set( 'waypoints', waypoints.sort( ( a, b ) => {
+                    return ( a.time > b.time ? 1 : -1 );
+                } ) );
+                */
             }
         }
         window.customElements.define(GeoTagGpx.is, GeoTagGpx);
