@@ -29,15 +29,19 @@
                 border-bottom: 1px solid lightgrey;
             }
             #file {
+                display: none;
                 outline: none; /* disable chromium highlighting of input fields */
+                /*
                 -webkit-appearance: none;
                    -moz-appearance: none;
                         appearance: none;
+                */
             }
             .clear {
                 color: red;
             }
             .export {
+                float: right;
                 color: royalblue;
             }
             #filter {
@@ -88,7 +92,8 @@
             }
         </style>
         <div class="file">
-                <input id="file" type="file" on-change="_changedGeoFile" accept=".gpx,.kml" />
+            <button on-click="_importGeoFiles" title="Import tracking points from file">&#xF07C;</button>
+            <input id="file" type="file" on-change="_changedGeoFile" accept=".gpx,.kml" />
             <button class="clear" on-click="_clickClear" title="Clear the list of waypoints">&#xF00D;</button>
             <button class="export" on-click="_clickExport" title="Export the list of waypoints">&#xF019;</button>
         </div>
@@ -108,8 +113,10 @@
                             <button on-click="_clickShowGeoTag" title="Show the location of this waypoint in the map">&#xF279;</button>
                             <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this waypoint">&#xF3C5;</button>
                             <button on-click="_clickApplyDateTime" title="Assign the current date and time from the calendar to this photo" disabled>&#xF073;</button>
+                            <!--
                             <button on-click="_clickUpdateTimezone" title="Lookup the timezone offset for this location">&#xF017;</button>
                             <button on-click="_clickEditWaypoint" title="Edit the waypoint" disabled>&#xF303;</button>
+                            -->
                         </div>
                         <div class="right">
                             <button on-click="_clickInsertWaypoint" title="Insert a new waypoint with the current location from the map after this waypoint">&#xF067;</button>
@@ -258,6 +265,13 @@
             /**
              *
              */
+            _importGeoFiles( event ) {
+                this.$.file.click();
+            }
+
+            /**
+             *
+             */
             _changedGeoFile( event ) {
                 try {
                     this.geo.importGEO( this.$.file.files[0].path )
@@ -266,6 +280,7 @@
                         //console.log( 'TODO: clear file input ...' );
                     } )
                     .catch( e => console.error( e ) );
+                    this.$.file.value = null;
                 } catch( e ) {
                     throw e;
                 }
@@ -277,7 +292,7 @@
             _clickClear( event ) {
                 try {
                     this.set( 'geo.waypoints', [] );
-                    console.log( 'TODO: clear file input ...' );
+                    this.$.file.value = null;
                 } catch( e ) {
                     throw e;
                 }

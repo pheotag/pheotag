@@ -27,15 +27,19 @@
                 border-bottom: 1px solid lightgrey;
             }
             #file {
+                display: none;
                 outline: none; /* disable chromium highlighting of input fields */
+                /*
                 -webkit-appearance: none;
                    -moz-appearance: none;
                         appearance: none;
+                */
             }
             .clear {
                 color: red;
             }
             .save {
+                float: right;
                 color: royalblue;
             }
             #filter {
@@ -113,6 +117,7 @@
             }
         </style>
         <div class="file">
+            <button on-click="_loadImageFiles" title="Open images for editing">&#xF07C;</button>
             <input id="file" type="file" on-change="_changedImageFiles" accept=".jpg" multiple />
             <button class="clear" on-click="_clickClear" title="Clear the list of photos">&#xF00D;</button>
             <button class="save" on-click="_clickSave" title="Save the modified EXIF data to all photo files">&#xF0C7;</button>
@@ -248,6 +253,13 @@
             /**
              *
              */
+            _loadImageFiles( event ) {
+                this.$.file.click();
+            }
+
+            /**
+             *
+             */
             _changedImageFiles( event ) {
                 try {
                     let jpegs = [... this.$.file.files]
@@ -257,7 +269,7 @@
                         throw new Error( 'No valid JPEG photos!' );
                     }
                     this.photos = jpegs;
-                    console.log( 'TODO: clear file input ...' );
+                    this.$.file.value = null;
                 } catch( e ) {
                     //console.warn( e );
                 }
@@ -269,7 +281,7 @@
             _clickClear( event ) {
                 try {
                     this.set( 'photos', [] );
-                    console.warn( 'TODO: clear file input ...' );
+                    this.$.file.value = null;
                 } catch( e ) {
                     console.warn( e );
                 }
