@@ -118,7 +118,7 @@
                         <div class="left">
                             <button on-click="_clickShowGeoTag" title="Show the location of this waypoint in the map">&#xF279;</button>
                             <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this waypoint">&#xF3C5;</button>
-                            <button on-click="_clickApplyDateTime" title="Assign the current date and time from the calendar to this photo" disabled>&#xF073;</button>
+                            <button on-click="_clickApplyDateTime" title="Assign the current date and time from the calendar to this waypoint">&#xF073;</button>
                             <!--
                             <button on-click="_clickUpdateTimezone" title="Lookup the timezone offset for this location">&#xF017;</button>
                             <button on-click="_clickEditWaypoint" title="Edit the waypoint" disabled>&#xF303;</button>
@@ -352,11 +352,18 @@
             _clickApplyDateTime( event ) {
                 // TODO: find a better way for notification without relying on index
                 let index = event.model.index;
-                // TODO: automatically get the new timezone offset
-                //       and re-adjust date/time (if not undefined)
-                // respect the current timezone of the waypoint
-                // create iso string and assign to waypoint ...
-                //this.set( `geo.waypoints.${index}.time`, ???.toISOString() );
+                let waypoint = event.model.item;
+                let dateTime = new Date( this.dateTime );
+                this.api.getTimezoneOffsetEstimationForLocation( waypoint.latitude, waypoint.longitude )
+                .then( timezone => {
+                    let timestamp = dateTime.getTime() - dateTime.getTimezoneOffset() * 60000 - timezone.offset * 1000;
+                    return this.api.getTimezoneForLocation( waypoint.latitude, waypoint.longitude, new Date( timestamp ) );
+                } )
+                .then( timezone => {
+                    dateTime.setTime( dateTime.getTime() - dateTime.getTimezoneOffset() * 60000 - timezone.offset * 1000 );
+                    this.set( `geo.waypoints.${index}.time`, dateTime.toISOString() );
+                } )
+                .catch( e => { throw e; } );
             }
 
             /**
