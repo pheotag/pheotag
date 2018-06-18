@@ -171,8 +171,8 @@
                         //readOnly: true, // prevent downward data flow
                     },
                     dateTime: {
-                        type: Object,
-                        value: new Date(),
+                        type: String,
+                        //value: new Date(),
                         notify: false, // enable upward data flow,
                         //readOnly: true, // prevent downward data flow
                     },
@@ -283,7 +283,6 @@
                     this.geo.importGEO( this.$.file.files[0].path )
                     .then( () => {
                         this.notifyPath( 'geo.waypoints' );
-                        //console.log( 'TODO: clear file input ...' );
                     } )
                     .catch( e => console.error( e ) );
                     this.$.file.value = null;
@@ -332,6 +331,7 @@
                 this.set( `geo.waypoints.${index}.latitude`, this.latitude );
                 this.set( `geo.waypoints.${index}.longitude`, this.longitude );
                 this._geoWaypointsChanged( this.geo.waypoints );
+                console.log( 'TODO: update timezone ...' );
                 /*
                 this.api.getElevationForLocations( [this.latitude, this.longitude] )
                 .then( results => {
@@ -360,7 +360,7 @@
             }
 
             /**
-             *
+             * OBSOLETE?
              */
             _clickUpdateTimezone( event ) {
                 try {
@@ -429,7 +429,7 @@
                     let index = ( event.model ? event.model.index : -1 );
                     let predecessor = ( index > -1 && index < this.geo.waypoints.length ? this.geo.waypoints[index] : undefined );
                     let successor = ( index > -2 && index < this.geo.waypoints.length - 1 ? this.geo.waypoints[index+1] : undefined );
-                    let timestamp = 0;
+                    let dateTime = new Date( this.dateTime );
                     if( predecessor && successor ) {
                         let dP = this._distance( this.latitude, this.longitude, predecessor );
                         let dS = this._distance( this.latitude, this.longitude, successor );
@@ -441,8 +441,9 @@
                         if( distspan !== 0 ) {
                             timestamp += Math.round( timespan * dP / distspan );
                         }
+                        dateTime = new Date( timestamp );
                     }
-                    this._insertWaypoint( index, new Date( timestamp ), this.latitude, this.longitude, '' );
+                    this._insertWaypoint( index, dateTime, this.latitude, this.longitude, '' );
                 } catch( e ) {
                     throw e;
                 }
