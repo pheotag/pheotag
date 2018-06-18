@@ -331,6 +331,8 @@
             _clickApplyDateTime( event ) {
                 // TODO: find a better way for notification without relying on index
                 let index = event.model.index;
+                // TODO: automatically get the new timezone offset
+                //       and re-adjust date/time (if not undefined)
                 // respect the current timezone of the waypoint
                 // create iso string and assign to waypoint ...
                 //this.set( `geo.waypoints.${index}.time`, ???.toISOString() );
@@ -376,7 +378,7 @@
             _clickInsertWaypoint( event ) {
                 try {
                     let index = ( event.model ? event.model.index : -1 );
-                    // TODO: interpolate time
+                    // TODO: interpolate time / or assign date/time from date/time panel with correct timezone offset
                     this.geo.addWaypoint( index, undefined, undefined, undefined, undefined, this.latitude, this.longitude, undefined, undefined );
                     this.notifyPath( 'geo.waypoints' );
                 } catch( e ) {
@@ -392,23 +394,23 @@
                     let photo = event.detail;
                     let link = photo.uri.split( '/' );
                     link = link[link.length - 1];
-                    let dateTime = new Date( photo.dateTimeOriginal || photo.dateTime || Date.now() );
-                    // dateTime was created as local date => remove the local timezone offset to use as ISO date
-                    dateTime.setTime( dateTime.getTime() - dateTime.getTimezoneOffset() * 60000 );
                     let index = this.geo.waypoints.findIndex( w => w.link === link );
                     if( index < 0 || confirm( `A waypoint for '${link}' already exist.\n\nReplace the existing waypoint?` ) ) {
-                        this.api.getTimezoneForLocation( photo.latitude, photo.longitude, dateTime )
-                        .then( ( timezone ) => {
-                            dateTime.setTime( dateTime.getTime() - timezone.offset * 1000 );
+                        let dateTime = new Date( photo.dateTimeOriginal || photo.dateTime || Date.now() );
+                        this.api.getTimezoneOffsetEstimationForLocation( photo.latitude, photo.longitude )
+                        .then( timezone => {
+                            let timestamp = dateTime.getTime() - dateTime.getTimezoneOffset() * 60000 - timezone.offset * 1000;
+                            return this.api.getTimezoneForLocation( photo.latitude, photo.longitude, new Date( timestamp ) );
+                        } )
+                        .then( timezone => {
+                            dateTime.setTime( dateTime.getTime() - dateTime.getTimezoneOffset() * 60000 - timezone.offset * 1000 );
                             this.geo.addWaypoint( index, '', '', dateTime, timezone.timezone, photo.latitude, photo.longitude, 0.0, link );
                             if( index > -1 ) {
                                 this.geo.removeWaypoint( index );
                             }
                             this.notifyPath( 'geo.waypoints' );
                         } )
-                        .catch( ( e ) => {
-                            throw e;
-                        } );
+                        .catch( e => { throw e; } );
                     }
                 } catch( e ) {
                     throw e;
