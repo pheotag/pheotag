@@ -2,7 +2,7 @@
 
 Photo GeoTag is an application that helps user to edit the Date/Time and GPS properties of multiple images. Photo GeoTag was developed because of the lack of convenient applications to set the GPS locations for multiple photos using a map or based on a GPX tracking file. Furthermore it was intended to provide support for KML export to merge GPS tracked paths with photos taken during the trip.
 
-![Screenshot Linux](res/screenshot-linux.jpg)
+![Screenshot Linux](./res/screenshot-linux.jpg)
 
 ## User Interface
 
@@ -15,7 +15,7 @@ The application requires an internet connection to consume geographic and timezo
 Located on the left side, the photo panel provides various functionalities to modify image files.
 The images that are currently loaded for editing will be shown in a list with thumbnails.
 
-![Photo Panel](res/photo-panel.jpg)
+![Photo Panel](./res/photo-panel.jpg)
 
 1. Load image files from the hard disk (do not load excessive amounts that cannot be handled by your system)
 2. Press this button to clear the list of images (this will unload your images from the application, <u>not</u> deleting them from your hard disk)
@@ -32,19 +32,19 @@ The images that are currently loaded for editing will be shown in a list with th
 
 This is a very basic *Date/Time* picker at the top of the application, that allows other panels to apply the currently selected value (e.g. to images or to tracking points).
 
-![Date/Time Panel](res/datetime-panel.jpg)
+![Date/Time Panel](./res/datetime-panel.jpg)
 
 ### Map Panel
 
 The map panel is located in the center and uses the google map service. On top of the default behavior, the user can set a position marker by clicking anywhere on the map. This position marker can then be used by other panels to apply the current position (e.g. to images or to tracking points). Eventually a red path is drawn on the map, reflecting the current  tracking points from the [Track Panel](#track-panel).
 
-![Map Panel](res/map-panel.jpg)
+![Map Panel](./res/map-panel.jpg)
 
 ### Track Panel
 
 The track panel is located on the right side and provides various functionalities related to tracking points. This is very helpful when assigning *GPS-Location*s to images without *GPS-Locations*, but that were tracked using an external GPS tracking device. The *Date/Time* property can then be used to identify the corresponding *GPS-Location* for an image from the tracking points. Furthermore it is possible to create a new list of tracking points based on existing geo-tagged images to reconstruct the traveled trail.
 
-![Track Panel](res/track-panel.jpg)
+![Track Panel](./res/track-panel.jpg)
 
 1. Import tracking points from a GPX file from the hard disk (only load small files with less points that can be handled by your system)
 2. Press this button to clear the list of tracking points (this will unload your images from the application, <u>not</u> deleting them from your hard disk)
