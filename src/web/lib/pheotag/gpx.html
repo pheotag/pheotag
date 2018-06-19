@@ -99,9 +99,6 @@
             <input id="file" type="file" on-change="_changedGeoFile" accept=".gpx,.kml" />
             <button class="clear" on-click="_clickClear" title="Clear the list of waypoints">&#xF00D;</button>
             <button class="export" on-click="_clickExport" title="Export the list of waypoints">&#xF019;</button>
-            <!--
-            <button class="sort" on-click="_sortWaypoints" title="Sort the list of waypoints by time">&#xF162;</button>
-            -->
         </div>
         <input id="filter" type="text" value="{{ filter::input }}"/>
         <div id="container">
@@ -119,10 +116,6 @@
                             <button on-click="_clickShowGeoTag" title="Show the location of this waypoint in the map">&#xF279;</button>
                             <button on-click="_clickApplyGeoTag" title="Assign the current location from the map to this waypoint">&#xF3C5;</button>
                             <button on-click="_clickApplyDateTime" title="Assign the current date and time from the calendar to this waypoint">&#xF073;</button>
-                            <!--
-                            <button on-click="_clickUpdateTimezone" title="Lookup the timezone offset for this location">&#xF017;</button>
-                            <button on-click="_clickEditWaypoint" title="Edit the waypoint" disabled>&#xF303;</button>
-                            -->
                         </div>
                         <div class="right">
                             <button on-click="_clickInsertWaypoint" title="Insert a new waypoint with the current location from the map after this waypoint">&#xF067;</button>
@@ -130,11 +123,6 @@
                         </div>
                     </div>
                 </div>
-                <!--
-                <div class="insertor">
-                    <button on-click="_clickInsertWaypoint" title="Insert a new waypoint">&#10133;</button>
-                </div>
-                -->
             </template>
         </div>
     </template>
@@ -370,27 +358,6 @@
             }
 
             /**
-             * OBSOLETE?
-             */
-            _clickUpdateTimezone( event ) {
-                try {
-                    let index = event.model.index;
-                    let waypoint = event.model.item;
-                    // TODO: change the timezone without updating time (keep the time for the new timezone)?
-                    this.api.getTimezoneForLocation( waypoint.latitude, waypoint.longitude, waypoint.time )
-                    .then( ( timezone ) => {
-                        this.set( `geo.waypoints.${index}.timezone`, timezone.timezone );
-                        this._geoWaypointsChanged( this.geo.waypoints );
-                    } )
-                    .catch( ( e ) => {
-                        throw e;
-                    } );
-                } catch( e ) {
-                    throw e;
-                }
-            }
-
-            /**
              *
              */
             _clickRemoveWaypoint( event ) {
@@ -440,6 +407,7 @@
                     let predecessor = ( index > -1 && index < this.geo.waypoints.length ? this.geo.waypoints[index] : undefined );
                     let successor = ( index > -2 && index < this.geo.waypoints.length - 1 ? this.geo.waypoints[index+1] : undefined );
                     let dateTime = new Date( this.dateTime );
+                    // interpolate the time based on distance to previous and next waypoint
                     if( predecessor && successor ) {
                         let dP = this._distance( this.latitude, this.longitude, predecessor );
                         let dS = this._distance( this.latitude, this.longitude, successor );
