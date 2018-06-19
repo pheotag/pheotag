@@ -28,12 +28,12 @@ class GeoFile {
     /**
      * 
      */
-    _createWaypoint( p ) {
+    _createWaypointFromGPXPoint( p ) {
         return {
             latitude: parseFloat( p.$.lat ),
             longitude: parseFloat( p.$.lon ),
             elevation: ( p.ele ? parseFloat( p.ele[0] ) : undefined ),
-            time: ( p.time ? p.time[0] : undefined ),
+            time: ( p.time ? new Date( p.time[0] ) : undefined ),
             name: ( p.name ? p.name[0] : undefined ),
             description: ( p.desc ? p.desc[0] : undefined ),
             link: ( p.link ? p.link[0].$.href : undefined )
@@ -75,16 +75,16 @@ class GeoFile {
                                 throw errorXML;
                             }
                             // Get waypoints from GPX
-                            //let waypoints = result.gpx.wpt.map( this._createWaypoint );
+                            //let waypoints = result.gpx.wpt.map( this._createWaypointFromGPXPoint );
         
                             // Get routepoints from GPX (all routes)
                             //let routes = result.gpx.rte; 
-                            //let routepoints = this._flatten( routes, 'rtept' ).map( this._createWaypoint );
+                            //let routepoints = this._flatten( routes, 'rtept' ).map( this._createWaypointFromGPXPoint );
                     
                             // Get trackpoints from GPX (all tracks with all segments)
                             let tracks = result.gpx.trk; // [ result.gpx.trk[0] ]
                             let segments = this._flatten( tracks, 'trkseg' );   
-                            let trackpoints = this._flatten( segments, 'trkpt' ).map( this._createWaypoint );
+                            let trackpoints = this._flatten( segments, 'trkpt' ).map( this._createWaypointFromGPXPoint );
         
                             // Assign points from GPX
                             this.waypoints = trackpoints;
@@ -161,7 +161,7 @@ class GeoFile {
             let waypoint = new Waypoint( latitude, longitude );
             waypoint.title = title;
             waypoint.description = description;
-            waypoint.time = ( time instanceof Date ? time.toISOString() : time );
+            waypoint.time = time; // ( ! time instanceof Date ? new Date( time ) : time );
             waypoint.timezone = timezone;
             waypoint.elevation = elevation;
             waypoint.link = link;

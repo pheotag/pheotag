@@ -231,7 +231,7 @@
                         timeZone: ( timezone ? timezone : 'UTC' ),
                         timeZoneName: 'short'
                     };
-                    return ( new Date( isotime ) ).toLocaleString( undefined, options );
+                    return isotime.toLocaleString( undefined, options );
                 } catch( e ) {
                     return 'UNKNOWN DATE & TIME';
                 }
@@ -244,7 +244,7 @@
                 let tooltip = [];
                 tooltip.push( 'Title: ' + waypoint.title );
                 tooltip.push( 'Description: ' + waypoint.description );
-                tooltip.push( 'Time (ISO): ' + ( waypoint.time ? waypoint.time : 'UNKNOWN DATE & TIME' ) );
+                tooltip.push( 'Time (ISO): ' + ( waypoint.time ? waypoint.time.toISOString() : 'UNKNOWN DATE & TIME' ) );
                 tooltip.push( `Coordinates: ${ this._round(waypoint.latitude) }°, ${ this._round(waypoint.longitude) }°` );
                 tooltip.push( 'Elevation: ' + waypoint.elevation);
                 tooltip.push( 'Link: ' + waypoint.link ); 
@@ -328,22 +328,25 @@
              */
             _clickApplyGeoTag( event ) {
                 let index = event.model.index;
+                let waypoint = event.model.item;
                 this.set( `geo.waypoints.${index}.latitude`, this.latitude );
                 this.set( `geo.waypoints.${index}.longitude`, this.longitude );
                 this._geoWaypointsChanged( this.geo.waypoints );
-                console.log( 'TODO: update timezone ...' );
-                /*
-                this.api.getElevationForLocations( [this.latitude, this.longitude] )
-                .then( results => {
-                    this.set( `geo.waypoints.${index}.eleveation`, results[0].elevation );
-                    this._geoWaypointsChanged( this.geo.waypoints );
+
+                this.api.getTimezoneForLocation( this.latitude, this.longitude, dateTime )
+                .then( timezone => {
+                    // TODO: how to get old timezone offset to calculate difference between new and old offset?
+                    //waypoint.time.setTime( dateTime.getTime() - dateTime.getTimezoneOffset() * 60000 - timezone.offset * 1000 );
+                    //this.set( `geo.waypoints.${index}.time`, waypoint.time.toISOString() );
+
+                    // 16:00+3 => 13:00Z
+                    // 16:00+5 => 11:00Z
+                    // 5h - 3h = 2h difference => 13:00Z - 2 = 11:00Z
+                    this.notify( `geo.waypoints.${index}.time` );
+                    this.set( `geo.waypoints.${index}.timezone`, timezone.timezone );
                 } )
-                .catch( e => {
-                    console.warn( e );
-                    this._geoWaypointsChanged( this.geo.waypoints );
-                } );
-                // TODO: use finally (available with chrome 63) to call _geoWaypointsChanged()
-                */
+                .catch( e => { throw e; } );
+                console.log( 'TODO: update timezone ...' );
             }
 
             /**
@@ -361,7 +364,7 @@
                 } )
                 .then( timezone => {
                     dateTime.setTime( dateTime.getTime() - dateTime.getTimezoneOffset() * 60000 - timezone.offset * 1000 );
-                    this.set( `geo.waypoints.${index}.time`, dateTime.toISOString() );
+                    this.set( `geo.waypoints.${index}.time`, dateTime );
                 } )
                 .catch( e => { throw e; } );
             }
@@ -374,7 +377,7 @@
                     let index = event.model.index;
                     let waypoint = event.model.item;
                     // TODO: change the timezone without updating time (keep the time for the new timezone)?
-                    this.api.getTimezoneForLocation( waypoint.latitude, waypoint.longitude, new Date( waypoint.time ) )
+                    this.api.getTimezoneForLocation( waypoint.latitude, waypoint.longitude, waypoint.time )
                     .then( ( timezone ) => {
                         this.set( `geo.waypoints.${index}.timezone`, timezone.timezone );
                         this._geoWaypointsChanged( this.geo.waypoints );
@@ -440,8 +443,8 @@
                     if( predecessor && successor ) {
                         let dP = this._distance( this.latitude, this.longitude, predecessor );
                         let dS = this._distance( this.latitude, this.longitude, successor );
-                        let tP = ( new Date( predecessor.time ) ).getTime();
-                        let tS = ( new Date( successor.time ) ).getTime();
+                        let tP = predecessor.time.getTime();
+                        let tS = successor.time.getTime();
                         let distspan = dP + dS;
                         let timespan = tS - tP;
                         timestamp = tP;
@@ -481,7 +484,7 @@
             _geoWaypointsChanged( waypoints ) {
                 /*
                 this.set( 'waypoints', waypoints.sort( ( a, b ) => {
-                    return ( a.time > b.time ? 1 : -1 );
+                    return ( a.time.getTime() - b.time.getTime() );
                 } ) );
                 */
             }
