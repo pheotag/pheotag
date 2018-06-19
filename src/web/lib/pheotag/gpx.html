@@ -317,24 +317,28 @@
             _clickApplyGeoTag( event ) {
                 let index = event.model.index;
                 let waypoint = event.model.item;
+                let dateTime = waypoint.time;
+                let timestamp = dateTime.getTime();
+
+                this.api.getTimezoneForLocation( waypoint.latitude, waypoint.longitude, dateTime )
+                .then( originalTimezone => {
+                    timestamp += originalTimezone.offset * 1000;
+                    return this.api.getTimezoneForLocation( this.latitude, this.longitude, dateTime );
+                } )
+                .then( newTimezone => {
+                    timestamp -= newTimezone.offset * 1000;
+                    this.set( `geo.waypoints.${index}.time`, new Date( timestamp ) );
+                    this.set( `geo.waypoints.${index}.timezone`, newTimezone.timezone );
+                } )
+                .catch( e => { 
+                    console.error( e );
+                    timestamp = dateTime.getTime();
+                 } );
+
+                // TODO: this should go to finally (available with chrome 63+)
                 this.set( `geo.waypoints.${index}.latitude`, this.latitude );
                 this.set( `geo.waypoints.${index}.longitude`, this.longitude );
                 this._geoWaypointsChanged( this.geo.waypoints );
-
-                this.api.getTimezoneForLocation( this.latitude, this.longitude, dateTime )
-                .then( timezone => {
-                    // TODO: how to get old timezone offset to calculate difference between new and old offset?
-                    //waypoint.time.setTime( dateTime.getTime() - dateTime.getTimezoneOffset() * 60000 - timezone.offset * 1000 );
-                    //this.set( `geo.waypoints.${index}.time`, waypoint.time.toISOString() );
-
-                    // 16:00+3 => 13:00Z
-                    // 16:00+5 => 11:00Z
-                    // 5h - 3h = 2h difference => 13:00Z - 2 = 11:00Z
-                    this.notify( `geo.waypoints.${index}.time` );
-                    this.set( `geo.waypoints.${index}.timezone`, timezone.timezone );
-                } )
-                .catch( e => { throw e; } );
-                console.log( 'TODO: update timezone ...' );
             }
 
             /**
