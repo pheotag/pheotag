@@ -95,7 +95,7 @@
                 <button on-click="_clickInsertWaypoint" title="Insert a new waypoint with the current location from the map at the beginning">&#xF067;</button>
             </div>
             <template is="dom-repeat" items="[[ geo.waypoints ]]">
-                <div class$="waypoint [[ _classForWaypoint(item) ]]" title$="[[ _tooltip(item) ]]">
+                <div class$="waypoint [[ _classForWaypoint(item) ]]" title$="[[ _tooltip(item,item.time,item.latitude,item.longitude) ]]">
                     <div class="time">[[ _date(item.time,item.timezone) ]]</div>
                     <div class="latlong">
                             [[ _round(item.latitude) ]]&deg;, [[ _round(item.longitude) ]]&deg;
@@ -217,12 +217,12 @@
             /**
              *
              */
-            _tooltip( waypoint ) {
+            _tooltip( waypoint, time, latitude, longitude ) {
                 let tooltip = [];
                 tooltip.push( 'Title: ' + waypoint.title );
                 tooltip.push( 'Description: ' + waypoint.description );
-                tooltip.push( 'Time (ISO): ' + ( waypoint.time ? waypoint.time.toISOString() : 'UNKNOWN DATE & TIME' ) );
-                tooltip.push( `Coordinates: ${ this._round(waypoint.latitude) }°, ${ this._round(waypoint.longitude) }°` );
+                tooltip.push( 'Time (ISO): ' + ( time ? time.toISOString() : 'UNKNOWN DATE & TIME' ) );
+                tooltip.push( `Coordinates: ${ this._round(latitude) }°, ${ this._round(longitude) }°` );
                 tooltip.push( 'Elevation: ' + waypoint.elevation);
                 tooltip.push( 'Link: ' + waypoint.link ); 
                 return tooltip.join( '\n' );
@@ -285,7 +285,7 @@
              */
             _clickExport( event ) {
                 try {
-                    console.log( event );
+                    alert( 'Under Construction :(' );
                 } catch( e ) {
                     throw e;
                 }

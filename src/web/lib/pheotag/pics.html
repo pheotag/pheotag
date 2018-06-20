@@ -114,7 +114,7 @@
         </div>
         <div id="container">
             <template is="dom-repeat" items="[[ photos ]]">
-                <div class="photo" title$="[[ _tooltip(item) ]]">
+                <div class="photo" title$="[[ _tooltip(item,item.dateTimeOriginal,item.latitude,item.longitude) ]]">
                     <div class="date">
                         [[ _date(item.dateTimeOriginal,item.dateTime) ]]
                     </div>
@@ -223,14 +223,14 @@
             /**
              *
              */
-            _tooltip( photo ) {
+            _tooltip( photo, time, latitude, longitude ) {
                 try {
                     let tooltip = [];
                     let dateTime = ( photo.dateTimeOriginal || photo.dateTime || 'T' ).split( 'T' );
                     tooltip.push( 'Date: ' + dateTime[0] );
                     tooltip.push( 'Time: ' + dateTime[1] );
-                    tooltip.push( `Latitude: ${ this._round(photo.latitude) }°`);
-                    tooltip.push( `Longitude: ${ this._round(photo.longitude) }°`);
+                    tooltip.push( `Latitude: ${ this._round(latitude) }°`);
+                    tooltip.push( `Longitude: ${ this._round(longitude) }°`);
                     tooltip.push( 'Altitude: ' + photo.altitude);
                     tooltip.push( 'File: ' + photo.uri );
                     return tooltip.join( '\n' );
@@ -325,7 +325,6 @@
                     let index = event.model.index;
                     this.set( `photos.${index}.dateTimeOriginal`, dateTime );
                     this.set( `photos.${index}.dateTime`, dateTime );
-                    console.log( this.dateTime, '=>', dateTime );
                 } catch( e ) {
                     console.warn( e );
                 }
