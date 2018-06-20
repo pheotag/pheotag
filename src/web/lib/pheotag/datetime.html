@@ -4,6 +4,16 @@
 
     <template>
         <style>
+            :host {
+                text-align: center;
+            }
+            #datetime {
+                outline: none; /* disable chromium highlighting of input fields */
+                -webkit-appearance: none;
+                padding: 0;
+                margin: 0;
+                border: 0;
+            }
         </style>
         <input id="datetime" type="datetime-local" step="1" value="{{ dateTime::input }}">
     </template>

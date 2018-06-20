@@ -14,21 +14,25 @@
                 width: 100%;
                 height: 100%;
             }
-            #datetime {
-                position: absolute;
-                z-index: 2;
-                width: 240px;
-                top: 0;
-                left: calc(50% - 120px);
-            }
             #pics {
                 flex: 1;
                 min-width: 300px;
                 box-shadow: 8px 0px 16px rgba(0, 0, 0, 0.25) !important;
                 z-index: 1;
             }
-            #map {
+            .main {
                 flex: 3;
+                display: flex;
+                flex-direction: column;
+            }
+            #datetime {
+                flex: 0;
+                border-bottom: 1px solid darkgrey;
+                background-color: white;
+                z-index: 2;
+            }
+            #map {
+                flex: 1;
             }
             #gpx {
                 flex: 1;
@@ -37,9 +41,12 @@
                 z-index: 1;
             }
         </style>
-        <geotag-datetime id="datetime" date-time="{{ dateTime }}"></geotag-datetime>
+        
         <geotag-pics id="pics" latitude="{{ latitude }}" longitude="{{ longitude }}" date-time="[[ dateTime ]]" on-photo="photoEventHandler"></geotag-pics>
-        <geotag-map id="map" latitude="{{ latitude }}" longitude="{{ longitude }}" waypoints="{{ waypoints }}"></geotag-map>
+        <div class="main">
+            <geotag-datetime id="datetime" date-time="{{ dateTime }}"></geotag-datetime>
+            <geotag-map id="map" latitude="{{ latitude }}" longitude="{{ longitude }}" waypoints="{{ waypoints }}"></geotag-map>
+        </div>
         <geotag-gpx id="gpx" latitude="{{ latitude }}" longitude="{{ longitude }}" date-time="[[ dateTime ]]" waypoints="{{ waypoints }}"></geotag-gpx>
     </template>
 
