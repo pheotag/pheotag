@@ -29,11 +29,7 @@
             #file {
                 display: none;
                 outline: none; /* disable chromium highlighting of input fields */
-                /*
                 -webkit-appearance: none;
-                   -moz-appearance: none;
-                        appearance: none;
-                */
             }
             .clear {
                 color: red;
@@ -41,12 +37,6 @@
             .save {
                 float: right;
                 color: royalblue;
-            }
-            #filter {
-                flex: initial;
-                margin: 0.25em;
-                width: calc(100% - 0.75em);
-                outline: none; /* disable chromium highlighting of input fields */
             }
             #container {
                 flex: 1;
@@ -122,7 +112,6 @@
             <button class="clear" on-click="_clickClear" title="Clear the list of photos">&#xF00D;</button>
             <button class="save" on-click="_clickSave" title="Save the modified EXIF data to all photo files">&#xF0C7;</button>
         </div>
-        <input id="filter" type="text" value="{{ filter::input }}"/>
         <div id="container">
             <template is="dom-repeat" items="[[ photos ]]">
                 <div class="photo" title$="[[ _tooltip(item) ]]">

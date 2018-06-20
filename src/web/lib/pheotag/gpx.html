@@ -31,11 +31,7 @@
             #file {
                 display: none;
                 outline: none; /* disable chromium highlighting of input fields */
-                /*
                 -webkit-appearance: none;
-                   -moz-appearance: none;
-                        appearance: none;
-                */
             }
             .clear {
                 color: red;
@@ -46,12 +42,6 @@
             .export {
                 float: right;
                 color: royalblue;
-            }
-            #filter {
-                flex: initial;
-                margin: 0.25em;
-                width: calc(100% - 0.75em);
-                outline: none; /* disable chromium highlighting of input fields */
             }
             #container {
                 flex: 1;
@@ -100,7 +90,6 @@
             <button class="clear" on-click="_clickClear" title="Clear the list of waypoints">&#xF00D;</button>
             <button class="export" on-click="_clickExport" title="Export the list of waypoints">&#xF019;</button>
         </div>
-        <input id="filter" type="text" value="{{ filter::input }}"/>
         <div id="container">
             <div class="insertor">
                 <button on-click="_clickInsertWaypoint" title="Insert a new waypoint with the current location from the map at the beginning">&#xF067;</button>
