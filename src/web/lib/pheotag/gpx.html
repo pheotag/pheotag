@@ -408,7 +408,7 @@
                         let tS = successor.time.getTime();
                         let distspan = dP + dS;
                         let timespan = tS - tP;
-                        timestamp = tP;
+                        let timestamp = tP;
                         if( distspan !== 0 ) {
                             timestamp += Math.round( timespan * dP / distspan );
                         }
@@ -443,11 +443,9 @@
              *
              */
             _geoWaypointsChanged( waypoints ) {
-                /*
                 this.set( 'waypoints', waypoints.sort( ( a, b ) => {
                     return ( a.time.getTime() - b.time.getTime() );
                 } ) );
-                */
             }
         }
         window.customElements.define(GeoTagGpx.is, GeoTagGpx);
