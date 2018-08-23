@@ -1,6 +1,6 @@
 {
     "name": "pheotag",
-    "version": "0.0.1",
+    "version": "0.0.3",
     "description": "Simple application for graphical geo tagging of multiple photos.",
     "author": "Ronny Wegener <wegener.ronny@gmail.com>",
     "main": "main.js",
