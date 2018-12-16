@@ -3,7 +3,7 @@
 PUBLISHER="Ronny Wegener <wegener.ronny@gmail.com>"
 PACKAGE="pheotag"
 PRODUCT="Photo GeoTag"
-VERSION="0.0.3"
+VERSION="0.0.4"
 DESCRIPTION_SHORT="Photo Geo Tagger"
 DESCRIPTION_LONG="Simple application for graphical geo tagging of multiple photos."
 YEAR="$(date +%Y)"
