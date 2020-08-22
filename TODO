@@ -1,0 +1,8 @@
+- Sort GPX Tracking Points by Timestamp?
+- Export KML File
+- Update Polymer Libraries
+- Update NPM Libraries
+- Reduce HTTP requests for timezone: When importing GPX with hundreds of tracking points there are hundreds of HTTP requests to determine the timezone
+- make timezone and elevation service api selectable
+- make api keys for services user configurable
+- open/close developer console with F12
